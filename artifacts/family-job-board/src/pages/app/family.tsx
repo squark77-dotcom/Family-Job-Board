@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useGetCurrentUser, useUpdateFamily, useListChildren, useCreateChild, useUpdateChild, useAwardBonus, getListChildrenQueryKey } from "@workspace/api-client-react";
+import { useGetCurrentUser, useUpdateFamily, useListChildren, useCreateChild, useAwardBonus, getListChildrenQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Users, UserPlus, Gift, Copy, Check } from "lucide-react";
+import { Loader2, UserPlus, Gift, Copy, Check, Users } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 
@@ -39,27 +39,27 @@ function BonusDialog({ childId, childName }: { childId: string, childName: strin
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50">
+        <Button variant="outline" size="sm" className="text-accent border-accent/20 hover:bg-accent/10 hover:text-accent font-bold rounded-xl shadow-sm h-10 active:scale-95 transition-all">
           <Gift className="w-4 h-4 mr-2" /> Give Bonus
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Award Bonus Points</DialogTitle>
+      <DialogContent className="sm:max-w-[425px] rounded-[1.5rem] p-6 border-border shadow-xl">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="font-display text-2xl font-bold tracking-tight">Award Bonus Points</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Points to award</Label>
-            <Input type="number" min="1" max="100" value={points} onChange={e => setPoints(e.target.value)} />
+            <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Points to award</Label>
+            <Input className="h-11 rounded-xl bg-muted/50 border-border font-bold text-accent" type="number" min="1" max="100" value={points} onChange={e => setPoints(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Reason</Label>
-            <Input value={reason} onChange={e => setReason(e.target.value)} placeholder="e.g. Helped sibling with homework" />
+            <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Reason</Label>
+            <Input className="h-11 rounded-xl bg-muted/50 border-border" value={reason} onChange={e => setReason(e.target.value)} placeholder="e.g. Extra help today" />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleAward} disabled={awardBonus.isPending}>
+        <DialogFooter className="mt-6 flex gap-3">
+          <Button variant="ghost" className="rounded-xl font-bold h-11" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button className="rounded-xl font-bold h-11 px-6 shadow-md shadow-accent/20 bg-accent hover:bg-accent/90 text-white" onClick={handleAward} disabled={awardBonus.isPending}>
             {awardBonus.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Award Points
           </Button>
@@ -86,7 +86,7 @@ function CreateChildDialog() {
       data: { name }
     }, {
       onSuccess: () => {
-        toast({ title: "Child profile added" });
+        toast({ title: "Profile added" });
         setOpen(false);
         setName("");
         queryClient.invalidateQueries({ queryKey: ["/api/family/children"] });
@@ -97,25 +97,22 @@ function CreateChildDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full border-dashed">
-          <UserPlus className="w-4 h-4 mr-2" /> Add Child Profile
+        <Button variant="outline" className="w-full border-dashed border-2 rounded-xl h-12 text-muted-foreground font-bold hover:text-foreground active:scale-[0.98] transition-all">
+          <UserPlus className="w-5 h-5 mr-2" /> Add Teen Profile
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Child Profile</DialogTitle>
+      <DialogContent className="sm:max-w-[425px] rounded-[1.5rem] p-6 border-border shadow-xl">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="font-display text-2xl font-bold tracking-tight">Add Profile</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Name</Label>
-            <Input value={name} onChange={e => setName(e.target.value)} placeholder="Child's name" />
-          </div>
+        <div className="py-2">
+          <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground block mb-2">Name</Label>
+          <Input className="h-11 rounded-xl bg-muted/50 border-border" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Alex" autoFocus />
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreate} disabled={createChild.isPending}>
-            {createChild.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Add Profile
+        <DialogFooter className="mt-6">
+          <Button className="w-full rounded-xl font-bold h-12 shadow-md shadow-primary/20 active:scale-[0.98] transition-all" onClick={handleCreate} disabled={createChild.isPending}>
+            {createChild.isPending && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
+            Save Profile
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -124,22 +121,25 @@ function CreateChildDialog() {
 }
 
 export default function Family() {
+  const { toast } = useToast();
   const { data: profile, refetch: refetchProfile } = useGetCurrentUser();
+  const updateFamily = useUpdateFamily();
+  
   const role = profile?.user?.role;
   const isParent = role === "parent";
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const { data: childrenList, isLoading: isChildrenLoading } = useListChildren({ query: { enabled: isParent, queryKey: getListChildrenQueryKey() } });
-  const updateFamily = useUpdateFamily();
 
   const [familyName, setFamilyName] = useState(profile?.family?.name || "");
   const [copied, setCopied] = useState(false);
 
+  const { data: childrenList, isLoading: isChildrenLoading } = useListChildren({ 
+    query: { enabled: isParent, queryKey: getListChildrenQueryKey() } 
+  });
+
   const handleUpdateFamily = () => {
+    if (!familyName.trim()) return;
     updateFamily.mutate({ data: { name: familyName } }, {
       onSuccess: () => {
-        toast({ title: "Family updated" });
+        toast({ title: "Workspace updated" });
         refetchProfile();
       }
     });
@@ -149,52 +149,58 @@ export default function Family() {
     if (profile?.family?.joinCode) {
       navigator.clipboard.writeText(profile.family.joinCode);
       setCopied(true);
-      toast({ title: "Join code copied!" });
+      toast({ title: "Copied to clipboard" });
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   return (
-    <div className="p-4 lg:p-8 max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div>
-        <h1 className="font-display text-3xl font-bold text-foreground">Family Settings</h1>
-        <p className="text-muted-foreground mt-1">
-          {isParent ? "Manage your family and profiles." : "Your family info."}
-        </p>
+    <div className="p-4 lg:p-8 max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="font-display text-3xl font-extrabold text-foreground tracking-tight">Settings</h1>
+          <p className="text-muted-foreground font-medium mt-1">
+            Manage your shared workspace.
+          </p>
+        </div>
       </div>
 
-      <Card className="shadow-sm border-border/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary" />
-            Family Info
+      <Card className="shadow-sm border-border rounded-[1.5rem] overflow-hidden">
+        <CardHeader className="bg-muted/10 border-b border-border/50 pb-5 pt-6 px-6">
+          <CardTitle className="flex items-center gap-2 text-xl font-bold">
+            <Users className="w-6 h-6 text-primary" />
+            Workspace Info
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-6 space-y-6">
           <div className="space-y-2 max-w-md">
-            <Label>Family Name</Label>
+            <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Workspace Name</Label>
             {isParent ? (
               <div className="flex gap-2">
-                <Input value={familyName} onChange={e => setFamilyName(e.target.value)} />
-                <Button onClick={handleUpdateFamily} disabled={updateFamily.isPending || familyName === profile?.family?.name}>
-                  {updateFamily.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
+                <Input 
+                  value={familyName} 
+                  onChange={e => setFamilyName(e.target.value)} 
+                  className="h-11 rounded-xl bg-muted/50 border-border font-bold text-base"
+                />
+                <Button className="h-11 rounded-xl font-bold shadow-md shadow-primary/20 active:scale-95 transition-all" onClick={handleUpdateFamily} disabled={updateFamily.isPending || familyName === profile?.family?.name}>
+                  {updateFamily.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save"}
                 </Button>
               </div>
             ) : (
-              <div className="p-3 bg-muted rounded-lg font-medium">{profile?.family?.name}</div>
+              <div className="p-3.5 bg-muted/50 border border-border/50 rounded-xl font-bold text-lg">{profile?.family?.name}</div>
             )}
           </div>
 
           {isParent && profile?.family?.joinCode && (
-            <div className="space-y-2 max-w-md pt-4 border-t border-border">
-              <Label>Family Join Code</Label>
-              <CardDescription>Share this code with your children so they can link their accounts.</CardDescription>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 p-3 bg-muted rounded-lg font-mono text-lg font-bold text-center tracking-widest">
+            <div className="space-y-3 max-w-md pt-6 border-t border-border/50">
+              <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Join Code</Label>
+              <CardDescription className="text-sm">Share this code with your teens so they can link their accounts.</CardDescription>
+              <div className="flex items-center gap-3">
+                <code className="flex-1 p-3.5 bg-muted/50 border border-border/50 rounded-xl font-mono text-xl font-bold text-center tracking-[0.2em] uppercase">
                   {profile.family.joinCode}
                 </code>
-                <Button variant="outline" size="icon" onClick={copyJoinCode} className="h-12 w-12 shrink-0">
-                  {copied ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
+                <Button variant="outline" size="icon" onClick={copyJoinCode} className="h-14 w-14 shrink-0 rounded-xl hover:bg-muted active:scale-95 transition-all">
+                  {copied ? <Check className="w-6 h-6 text-green-500" /> : <Copy className="w-6 h-6 text-foreground" />}
                 </Button>
               </div>
             </div>
@@ -203,52 +209,52 @@ export default function Family() {
       </Card>
 
       {isParent && (
-        <Card className="shadow-sm border-border/50">
-          <CardHeader>
-            <CardTitle>Children Profiles</CardTitle>
-            <CardDescription>Manage profiles for your children.</CardDescription>
+        <Card className="shadow-sm border-border rounded-[1.5rem] overflow-hidden">
+          <CardHeader className="bg-muted/10 border-b border-border/50 pb-5 pt-6 px-6">
+            <CardTitle className="text-xl font-bold">Teens</CardTitle>
+            <CardDescription className="text-sm">Manage profiles and IDs.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-6">
             {isChildrenLoading ? (
-              <div className="flex justify-center p-4"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+              <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
             ) : childrenList && childrenList.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {childrenList.map(child => (
-                  <div key={child.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-white shadow-sm">
+                  <div key={child.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
-                        <span className="font-bold text-secondary">{child.name.charAt(0)}</span>
+                      <div className="w-12 h-12 bg-muted rounded-[14px] flex items-center justify-center shrink-0 border border-border">
+                        <span className="font-display font-bold text-xl text-foreground">{child.name.charAt(0)}</span>
                       </div>
                       <div>
-                        <h4 className="font-bold text-foreground">{child.name}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
-                            ID: {child.id.substring(0, 8)}...
+                        <h4 className="font-bold text-lg text-foreground">{child.name}</h4>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <span className="text-xs font-bold text-muted-foreground bg-muted/50 px-2 py-1 rounded-md font-mono">
+                            ID: {child.id}
                           </span>
                           {child.linked ? (
-                            <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-md flex items-center">
+                            <span className="text-[10px] uppercase tracking-wider font-bold text-green-700 bg-green-500/10 px-2 py-1 rounded-md flex items-center">
                               <Check className="w-3 h-3 mr-1" /> Linked
                             </span>
                           ) : (
-                            <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
+                            <span className="text-[10px] uppercase tracking-wider font-bold text-amber-700 bg-amber-500/10 px-2 py-1 rounded-md">
                               Not linked
                             </span>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center shrink-0">
                       <BonusDialog childId={child.id} childName={child.name} />
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground text-center py-4">No children profiles yet.</p>
+              <p className="text-muted-foreground text-center py-10 font-medium">No profiles yet.</p>
             )}
           </CardContent>
-          {childrenList && childrenList.length < 5 && (
-            <CardFooter>
+          {childrenList && childrenList.length < 10 && (
+            <CardFooter className="px-6 pb-6 pt-0">
               <CreateChildDialog />
             </CardFooter>
           )}

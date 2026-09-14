@@ -1,91 +1,90 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle, Heart, Star } from "lucide-react";
+import { ArrowRight, CheckCircle2, Zap, Rocket, Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-[100dvh] bg-background flex flex-col overflow-hidden relative">
-      {/* Decorative backgrounds */}
-      <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-primary/10 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 z-0 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[60vw] h-[60vw] bg-secondary/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4 z-0 pointer-events-none"></div>
-      <div className="absolute top-1/2 left-1/2 w-[80vw] h-[80vw] bg-accent/30 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 z-0 pointer-events-none"></div>
+    <div className="min-h-[100dvh] bg-background flex flex-col overflow-hidden relative selection:bg-primary/20">
+      {/* Sleek Decorative Background */}
+      <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-primary/10 rounded-full blur-[120px] z-0 pointer-events-none mix-blend-multiply opacity-50"></div>
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-accent/10 rounded-full blur-[120px] z-0 pointer-events-none mix-blend-multiply opacity-50"></div>
 
       <header className="px-6 py-6 lg:px-12 flex items-center justify-between z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-border flex items-center justify-center p-2">
-            <img src="/logo.svg" alt="Logo" className="w-full h-full" />
+          <div className="w-10 h-10 bg-black rounded-[14px] shadow-sm flex items-center justify-center p-2 text-white">
+            <Zap className="w-6 h-6" fill="currentColor" />
           </div>
-          <span className="font-display font-bold text-xl text-foreground">Family Job Board</span>
+          <span className="font-display font-bold text-xl text-foreground tracking-tight">Board</span>
         </div>
         <div className="flex items-center gap-4">
-          <Button asChild variant="ghost" className="font-semibold hidden sm:flex">
+          <Button asChild variant="ghost" className="font-bold hidden sm:flex text-foreground hover:bg-black/5 hover:text-black rounded-xl">
             <Link href="/sign-in">Log In</Link>
           </Button>
-          <Button asChild className="font-semibold shadow-sm">
+          <Button asChild className="font-bold shadow-md shadow-primary/20 rounded-xl h-11 px-6">
             <Link href="/sign-up">Get Started</Link>
           </Button>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 lg:py-24 text-center z-10 max-w-5xl mx-auto w-full">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-16 lg:py-24 text-center z-10 max-w-5xl mx-auto w-full">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-border shadow-sm mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <Star className="w-4 h-4 text-primary fill-primary" />
-          <span className="text-sm font-semibold text-foreground">A new way to manage family work</span>
+          <Sparkles className="w-4 h-4 text-accent fill-accent" />
+          <span className="text-sm font-bold text-foreground">The new way to manage family work</span>
         </div>
 
-        <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground leading-[1.1] mb-6 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100 fill-mode-both">
-          Build initiative, <br className="hidden sm:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">not resentment.</span>
+        <h1 className="font-display text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-tight text-foreground leading-[1.05] mb-6 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100 fill-mode-both">
+          Own your tasks.<br className="hidden sm:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Rule your day.</span>
         </h1>
 
-        <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both leading-relaxed">
-          A cheerful, shared space where parents coordinate household jobs and kids discover the satisfaction of contributing to the family.
+        <p className="text-lg sm:text-2xl text-muted-foreground font-medium max-w-2xl mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both leading-snug">
+          A shared workspace where parents coordinate and teens take charge. Claim jobs, earn points, and build initiative.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300 fill-mode-both">
-          <Button asChild size="lg" className="h-14 px-8 text-lg font-bold shadow-md hover:shadow-lg transition-all rounded-2xl group">
+          <Button asChild size="lg" className="h-14 px-8 text-lg font-bold shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all rounded-[1rem] group active:scale-[0.98]">
             <Link href="/sign-up">
-              Start Your Family Board
+              Start Your Board
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="h-14 px-8 text-lg font-bold rounded-2xl bg-white/50 backdrop-blur-sm">
+          <Button asChild size="lg" variant="outline" className="h-14 px-8 text-lg font-bold rounded-[1rem] bg-white hover:bg-black/5 hover:text-black border-border transition-all active:scale-[0.98]">
             <Link href="/sign-in">
               I have an invite code
             </Link>
           </Button>
         </div>
 
-        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 w-full animate-in fade-in duration-1000 delay-500 fill-mode-both">
+        <div className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-6 w-full animate-in fade-in duration-1000 delay-500 fill-mode-both text-left">
           {[
             {
-              icon: CheckCircle,
+              icon: Rocket,
               color: "text-primary",
               bg: "bg-primary/10",
-              title: "Clear Expectations",
-              desc: "Assign jobs to specific kids or put them on the shared board for anyone to claim."
+              title: "Claim & Conquer",
+              desc: "Grab tasks from the shared board on your own time. No nagging required."
             },
             {
-              icon: Heart,
-              color: "text-secondary",
-              bg: "bg-secondary/10",
-              title: "Positive Reinforcement",
-              desc: "Review completed work and award points to build a sense of pride and accomplishment."
+              icon: CheckCircle2,
+              color: "text-accent",
+              bg: "bg-accent/10",
+              title: "Get Recognized",
+              desc: "Submit your work for review. Earn points and see your contributions stack up."
             },
             {
-              icon: Star,
-              color: "text-orange-500",
-              bg: "bg-orange-500/10",
-              title: "Track Growth",
-              desc: "Watch as kids take on more voluntary jobs and build initiative over time."
+              icon: Zap,
+              color: "text-black",
+              bg: "bg-black/5",
+              title: "Level Up",
+              desc: "Watch your stats grow as you take on more responsibility and build real initiative."
             }
           ].map((feature, i) => (
-            <div key={i} className="flex flex-col items-center text-center p-6 rounded-3xl bg-white border border-border/50 shadow-sm hover:shadow-md transition-shadow">
-              <div className={`w-14 h-14 rounded-2xl ${feature.bg} flex items-center justify-center mb-6`}>
+            <div key={i} className="flex flex-col p-8 rounded-[2rem] bg-white border border-border shadow-sm hover:shadow-md transition-shadow group">
+              <div className={`w-14 h-14 rounded-2xl ${feature.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                 <feature.icon className={`w-7 h-7 ${feature.color}`} />
               </div>
-              <h3 className="font-display text-xl font-bold mb-3">{feature.title}</h3>
-              <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
+              <h3 className="font-display text-2xl font-bold mb-3 text-foreground">{feature.title}</h3>
+              <p className="text-muted-foreground font-medium leading-relaxed">{feature.desc}</p>
             </div>
           ))}
         </div>

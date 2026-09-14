@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, UserPlus, Home, UserCircle } from "lucide-react";
+import { Loader2, UserPlus, Home, KeyRound, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FullScreenLoader } from "@/components/ui/full-screen-loader";
 
@@ -22,17 +22,7 @@ export default function Setup() {
 
   // Child State
   const [joinCode, setJoinCode] = useState("");
-  const [childId, setChildId] = useState(""); // User will need to enter the child ID given by parent? No, wait. 
-  // Wait, the API for joinFamily takes { joinCode, childId }. The child wouldn't know their ID. 
-  // Let's check API schema: FamilyJoinInput has joinCode and childId.
-  // This implies the parent gives the join code, and then the child is linked.
-  // Actually, usually a join code is tied to the family. How does the child pick which profile they are?
-  // They probably enter the join code, and the backend needs childId.
-  // If the backend requires childId, maybe the parent provides a specific join link?
-  // Let's check if the child can fetch list of unclaimed children after providing joinCode? 
-  // Or is the childId given by parent? Let's just have them enter child name or childId.
-  // A better way: maybe joinCode is enough? But the schema requires childId.
-  // I will let the child input "joinCode" and "childId" for now.
+  const [childId, setChildId] = useState("");
 
   if (isProfileLoading) return <FullScreenLoader />;
 
@@ -73,7 +63,7 @@ export default function Setup() {
     createFamily.mutate({ data: { name: familyName, children: validChildren } }, {
       onSuccess: () => {
         toast({ title: "Family created!" });
-        refetch(); // will redirect to /app/today
+        refetch();
       },
       onError: (err: any) => {
         toast({ title: "Failed to create family", description: err.error || "Unknown error", variant: "destructive" });
@@ -98,103 +88,112 @@ export default function Setup() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4 relative overflow-hidden selection:bg-primary/20">
+      <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-[60vw] h-[60vw] bg-accent/5 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+      
+      <div className="w-full max-w-md z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-border mx-auto flex items-center justify-center mb-4">
-            <img src="/logo.svg" alt="Logo" className="w-10 h-10" />
+          <div className="w-16 h-16 bg-black rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-md">
+            <img src="/logo.svg" alt="Logo" className="w-8 h-8 invert brightness-0" />
           </div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Welcome to the Board</h1>
-          <p className="text-muted-foreground mt-2">Let's get your family set up.</p>
+          <h1 className="text-3xl font-display font-extrabold text-foreground tracking-tight">Almost there</h1>
+          <p className="text-muted-foreground font-medium mt-2">Let's get your workspace set up.</p>
         </div>
 
         {role === "parent" ? (
-          <Card className="shadow-lg border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card className="shadow-xl shadow-primary/5 border-border rounded-[1.5rem] overflow-hidden">
+            <CardHeader className="bg-muted/30 pb-6 border-b border-border/50">
+              <CardTitle className="flex items-center gap-2 text-xl">
                 <Home className="w-5 h-5 text-primary" />
-                Create your Family
+                Create your workspace
               </CardTitle>
-              <CardDescription>Give your family a name and add your children's profiles.</CardDescription>
+              <CardDescription className="text-sm">Give your family a name and set up profiles.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               <div className="space-y-2">
-                <Label>Family Name</Label>
+                <Label className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">Family Name</Label>
                 <Input 
                   placeholder="e.g. The Smiths" 
                   value={familyName} 
-                  onChange={e => setFamilyName(e.target.value)} 
+                  onChange={e => setFamilyName(e.target.value)}
+                  className="h-12 bg-muted/50 border-border rounded-xl focus-visible:ring-primary/20 text-base"
                 />
               </div>
               
               <div className="space-y-3">
-                <Label>Children Profiles</Label>
+                <Label className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">Teens / Children</Label>
                 {children.map((child, index) => (
-                  <div key={index} className="flex items-center gap-2">
+                  <div key={index} className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2">
                     <Input 
-                      placeholder={`Child ${index + 1} Name`} 
+                      placeholder={`Name ${index + 1}`} 
                       value={child.name}
                       onChange={e => handleChildChange(index, e.target.value)}
+                      className="h-12 bg-muted/50 border-border rounded-xl focus-visible:ring-primary/20 text-base"
                     />
                     {children.length > 1 && (
-                      <Button variant="ghost" size="icon" onClick={() => handleRemoveChild(index)} className="text-muted-foreground hover:text-destructive shrink-0">
+                      <Button variant="ghost" size="icon" onClick={() => handleRemoveChild(index)} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 h-12 w-12 rounded-xl">
                         &times;
                       </Button>
                     )}
                   </div>
                 ))}
-                {children.length < 3 && (
-                  <Button variant="outline" size="sm" onClick={handleAddChild} className="w-full mt-2 border-dashed">
+                {children.length < 5 && (
+                  <Button variant="outline" size="sm" onClick={handleAddChild} className="w-full h-11 mt-2 border-dashed border-2 rounded-xl text-muted-foreground hover:text-foreground">
                     <UserPlus className="w-4 h-4 mr-2" />
-                    Add another child
+                    Add another profile
                   </Button>
                 )}
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="pt-2 pb-6 px-6">
               <Button 
-                className="w-full h-12 text-lg font-bold" 
+                className="w-full h-14 text-lg font-bold rounded-xl shadow-md shadow-primary/20 active:scale-[0.98] transition-all" 
                 onClick={handleCreateFamily}
                 disabled={createFamily.isPending}
               >
-                {createFamily.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Create Family"}
+                {createFamily.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Create Workspace"}
               </Button>
             </CardFooter>
           </Card>
         ) : (
-          <Card className="shadow-lg border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCircle className="w-5 h-5 text-secondary" />
-                Join your Family
+          <Card className="shadow-xl shadow-accent/5 border-border rounded-[1.5rem] overflow-hidden">
+            <CardHeader className="bg-muted/30 pb-6 border-b border-border/50">
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <KeyRound className="w-5 h-5 text-accent" />
+                Join the Board
               </CardTitle>
-              <CardDescription>Ask your parent for the family join code and your profile ID.</CardDescription>
+              <CardDescription className="text-sm">Get your join code and profile ID from your parent.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 pt-6">
               <div className="space-y-2">
-                <Label>Join Code</Label>
+                <Label className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">Join Code</Label>
                 <Input 
                   placeholder="e.g. ABCD123" 
                   value={joinCode} 
-                  onChange={e => setJoinCode(e.target.value)} 
+                  onChange={e => setJoinCode(e.target.value)}
+                  className="h-12 bg-muted/50 border-border rounded-xl focus-visible:ring-accent/20 text-base uppercase font-mono tracking-widest placeholder:normal-case placeholder:tracking-normal placeholder:font-sans"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Your Profile ID</Label>
+                <Label className="font-semibold text-foreground/80 text-xs uppercase tracking-wider">Profile ID</Label>
                 <Input 
                   placeholder="Ask your parent for this" 
                   value={childId} 
-                  onChange={e => setChildId(e.target.value)} 
+                  onChange={e => setChildId(e.target.value)}
+                  className="h-12 bg-muted/50 border-border rounded-xl focus-visible:ring-accent/20 text-base font-mono"
                 />
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="pt-2 pb-6 px-6">
               <Button 
-                className="w-full h-12 text-lg font-bold" 
+                className="w-full h-14 text-lg font-bold rounded-xl shadow-md shadow-accent/20 active:scale-[0.98] transition-all bg-accent hover:bg-accent/90 text-white" 
                 onClick={handleJoinFamily}
                 disabled={joinFamily.isPending}
               >
-                {joinFamily.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Join Family"}
+                {joinFamily.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                  <>Enter Workspace <ArrowRight className="w-5 h-5 ml-2" /></>
+                )}
               </Button>
             </CardFooter>
           </Card>

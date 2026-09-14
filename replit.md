@@ -33,6 +33,7 @@ A family contribution app where parents create and review household jobs, childr
 - Authorization is enforced in API routes from the Clerk user mapping; the client-side role-aware UI is not treated as a security boundary.
 - Job Board claims use one conditional database update so only the first child can claim a job.
 - Approved points are immutable ledger entries. A unique job constraint prevents duplicate awards.
+- The visual identity is teen-focused: high-contrast neutrals with electric cobalt and magenta accents, bold typography, and mature productivity styling rather than a childlike chore-chart aesthetic.
 
 ## Product
 

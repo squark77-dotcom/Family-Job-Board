@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlayCircle, CheckCircle2, Send, Clock, CheckCircle, Trash2 } from "lucide-react";
+import { Loader2, PlayCircle, CheckCircle2, Send, Clock, CheckCircle, Trash2, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -58,13 +58,13 @@ function JobCard({ job, role }: { job: Job; role: string }) {
 
   const getStatusColor = (status: JobStatus) => {
     switch (status) {
-      case "to_do": return "bg-slate-100 text-slate-700";
-      case "claimed": return "bg-blue-100 text-blue-700";
-      case "in_progress": return "bg-amber-100 text-amber-700";
-      case "ready_for_review": return "bg-purple-100 text-purple-700";
-      case "changes_requested": return "bg-red-100 text-red-700";
-      case "completed": return "bg-green-100 text-green-700";
-      default: return "bg-gray-100 text-gray-700";
+      case "to_do": return "bg-muted text-muted-foreground";
+      case "claimed": return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
+      case "in_progress": return "bg-amber-500/10 text-amber-600 dark:text-amber-400";
+      case "ready_for_review": return "bg-primary/10 text-primary";
+      case "changes_requested": return "bg-destructive/10 text-destructive";
+      case "completed": return "bg-accent/10 text-accent";
+      default: return "bg-muted text-muted-foreground";
     }
   };
 
@@ -73,80 +73,95 @@ function JobCard({ job, role }: { job: Job; role: string }) {
   };
 
   return (
-    <Card className="shadow-sm border-border/50 hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg leading-tight">{job.title}</CardTitle>
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-primary">{job.points} pts</span>
+    <Card className="shadow-sm border-border/50 hover:shadow-md transition-all group overflow-hidden rounded-[1.25rem]">
+      <CardHeader className="pb-3 px-5 pt-5">
+        <div className="flex justify-between items-start gap-2">
+          <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">{job.title}</CardTitle>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="font-bold text-primary bg-primary/5 px-2 py-1 rounded-md text-xs">{job.points} pts</span>
           </div>
         </div>
         {job.description && (
-          <p className="text-sm text-muted-foreground mt-1">{job.description}</p>
+          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{job.description}</p>
         )}
       </CardHeader>
-      <CardContent className="pb-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className={`border-0 ${getStatusColor(job.status)}`}>
+      <CardContent className="pb-4 px-5">
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <Badge variant="secondary" className={`border-0 font-bold ${getStatusColor(job.status)}`}>
             {formatStatus(job.status)}
           </Badge>
           {job.estimatedMinutes && (
-            <div className="flex items-center text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
-              <Clock className="w-3 h-3 mr-1" />
-              {job.estimatedMinutes} min
+            <div className="flex items-center text-xs font-bold text-muted-foreground bg-muted/50 px-2 py-1.5 rounded-md">
+              <Clock className="w-3.5 h-3.5 mr-1.5 opacity-70" />
+              {job.estimatedMinutes}m
             </div>
           )}
-          {job.type === "board" && (
-            <Badge variant="outline" className="text-orange-600 bg-orange-50 border-orange-200">
-              Bonus Job
-            </Badge>
-          )}
-          {role === "parent" && job.claimedByChildName && (
-            <div className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded-md">
-              {job.claimedByChildName}
-            </div>
-          )}
-          {role === "parent" && !job.claimedByChildName && job.assignedChildName && (
-            <div className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded-md">
+          {job.type === "assigned" && role === "parent" && job.assignedChildName && (
+            <div className="text-xs font-bold text-muted-foreground bg-muted/50 px-2 py-1.5 rounded-md">
               {job.assignedChildName}
+            </div>
+          )}
+          {job.type === "board" && role === "parent" && job.claimedByChildName && (
+            <div className="text-xs font-bold text-muted-foreground bg-muted/50 px-2 py-1.5 rounded-md">
+              {job.claimedByChildName}
             </div>
           )}
         </div>
       </CardContent>
-      {role === "child" && (
-        <CardFooter className="pt-0">
-          {(job.status === "to_do" || job.status === "claimed") && (
-            <Button className="w-full" onClick={handleStart} disabled={startJob.isPending}>
-              {startJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><PlayCircle className="w-4 h-4 mr-2" /> Start Job</>}
-            </Button>
-          )}
-          {(job.status === "in_progress" || job.status === "changes_requested") && (
-            <Button className="w-full" onClick={handleSubmit} disabled={submitJob.isPending}>
-              {submitJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4 mr-2" /> Submit for Review</>}
-            </Button>
-          )}
-        </CardFooter>
-      )}
-      {role === "parent" && (
-        <CardFooter className="pt-0 flex gap-2">
-          {(job.status === "to_do" || job.status === "claimed" || job.status === "in_progress") && (
-            <Button variant="outline" className="flex-1 text-green-600 border-green-200 hover:bg-green-50" onClick={handleComplete} disabled={completeJob.isPending}>
-              {completeJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4 mr-2" /> Mark Done</>}
-            </Button>
-          )}
-          <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 shrink-0" onClick={handleDelete} disabled={deleteJob.isPending}>
-            {deleteJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-          </Button>
-        </CardFooter>
-      )}
+      <CardFooter className="px-5 pb-5 pt-0 flex gap-2">
+        {role === "child" && (
+          <>
+            {(job.status === "claimed" || job.status === "to_do" || job.status === "changes_requested") && (
+              <Button 
+                className="w-full font-bold h-10 shadow-sm rounded-xl active:scale-95 transition-all" 
+                onClick={handleStart} 
+                disabled={startJob.isPending}
+              >
+                {startJob.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <PlayCircle className="w-4 h-4 mr-2" />}
+                Start Job
+              </Button>
+            )}
+            {job.status === "in_progress" && (
+              <Button 
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 shadow-sm rounded-xl active:scale-95 transition-all" 
+                onClick={handleSubmit} 
+                disabled={submitJob.isPending}
+              >
+                {submitJob.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+                Submit for Review
+              </Button>
+            )}
+          </>
+        )}
+
+        {role === "parent" && (
+          <>
+            {job.status === "ready_for_review" && (
+              <Button variant="secondary" className="w-full font-bold h-10 rounded-xl" asChild>
+                <a href="/app/review">Review <ArrowRight className="w-4 h-4 ml-2" /></a>
+              </Button>
+            )}
+            {(job.status === "to_do" || job.status === "claimed" || job.status === "changes_requested") && (
+              <Button variant="ghost" size="icon" className="ml-auto text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl h-10 w-10 shrink-0" onClick={handleDelete} disabled={deleteJob.isPending}>
+                {deleteJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              </Button>
+            )}
+            {job.status === "in_progress" && (
+              <Button variant="outline" className="w-full font-bold h-10 rounded-xl" onClick={handleComplete} disabled={completeJob.isPending}>
+                {completeJob.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2 text-accent" />}
+                Mark Complete
+              </Button>
+            )}
+          </>
+        )}
+      </CardFooter>
     </Card>
   );
 }
 
 export default function Today() {
   const { data: profile } = useGetCurrentUser();
-  const role = profile?.user?.role;
-  const isParent = role === "parent";
+  const isParent = profile?.user?.role === "parent";
 
   const { data: dashboard, isLoading: isDashboardLoading } = useGetDashboard({ 
     query: { enabled: isParent, queryKey: getGetDashboardQueryKey() } 
@@ -162,68 +177,68 @@ export default function Today() {
   ) || [];
 
   if (isParent && isDashboardLoading) {
-    return <div className="flex p-8 justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+    return <div className="flex p-8 justify-center mt-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
   if (!isParent && isJobsLoading) {
-    return <div className="flex p-8 justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+    return <div className="flex p-8 justify-center mt-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
   return (
-    <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+    <div className="p-4 lg:p-8 space-y-8">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Today</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="font-display text-3xl font-extrabold text-foreground tracking-tight">Today</h1>
+          <p className="text-muted-foreground font-medium mt-1">
             {format(new Date(), "EEEE, MMMM do")}
           </p>
         </div>
       </div>
 
       {isParent && dashboard && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-white border-border/50 shadow-sm">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-display font-bold text-primary">{dashboard.today.outstanding}</span>
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Outstanding</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Card className="bg-card border-border shadow-sm rounded-[1.25rem]">
+            <CardContent className="p-5 flex flex-col items-center justify-center text-center">
+              <span className="text-4xl font-display font-extrabold text-primary">{dashboard.today.outstanding}</span>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-2">Outstanding</span>
             </CardContent>
           </Card>
-          <Card className="bg-white border-border/50 shadow-sm">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-display font-bold text-amber-500">{dashboard.today.changesRequested}</span>
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Needs Change</span>
+          <Card className="bg-card border-border shadow-sm rounded-[1.25rem]">
+            <CardContent className="p-5 flex flex-col items-center justify-center text-center">
+              <span className="text-4xl font-display font-extrabold text-amber-500">{dashboard.today.changesRequested}</span>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-2">Needs Change</span>
             </CardContent>
           </Card>
-          <Card className="bg-white border-border/50 shadow-sm">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-display font-bold text-purple-500">{dashboard.today.awaitingReview}</span>
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">To Review</span>
+          <Card className="bg-card border-border shadow-sm rounded-[1.25rem]">
+            <CardContent className="p-5 flex flex-col items-center justify-center text-center">
+              <span className="text-4xl font-display font-extrabold text-purple-500">{dashboard.today.awaitingReview}</span>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-2">To Review</span>
             </CardContent>
           </Card>
-          <Card className="bg-white border-border/50 shadow-sm">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-              <span className="text-3xl font-display font-bold text-secondary">{dashboard.today.completed}</span>
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Completed</span>
+          <Card className="bg-card border-border shadow-sm rounded-[1.25rem]">
+            <CardContent className="p-5 flex flex-col items-center justify-center text-center">
+              <span className="text-4xl font-display font-extrabold text-accent">{dashboard.today.completed}</span>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-2">Completed</span>
             </CardContent>
           </Card>
         </div>
       )}
 
-      <div>
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+      <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
+        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
           {isParent ? "Active Jobs" : "My Jobs"}
         </h2>
         
         {activeJobs.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-border">
-            <CheckCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-foreground">All caught up!</h3>
-            <p className="text-muted-foreground">No active jobs right now.</p>
+          <div className="text-center py-16 bg-muted/30 rounded-[2rem] border-2 border-dashed border-border/60">
+            <CheckCircle className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <h3 className="text-xl font-display font-bold text-foreground">All caught up!</h3>
+            <p className="text-muted-foreground font-medium mt-1">No active jobs right now.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {activeJobs.map(job => (
-              <JobCard key={job.id} job={job} role={role || "child"} />
+              <JobCard key={job.id} job={job} role={profile?.user?.role || "child"} />
             ))}
           </div>
         )}

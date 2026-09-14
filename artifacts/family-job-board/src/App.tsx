@@ -50,40 +50,40 @@ const clerkAppearance = {
     logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
   },
   variables: {
-    colorPrimary: "hsl(12 76% 61%)",
-    colorForeground: "hsl(20 20% 20%)",
-    colorMutedForeground: "hsl(20 10% 45%)",
+    colorPrimary: "hsl(235 90% 60%)",
+    colorForeground: "hsl(240 10% 10%)",
+    colorMutedForeground: "hsl(240 10% 40%)",
     colorDanger: "hsl(0 84% 60%)",
     colorBackground: "hsl(0 0% 100%)",
-    colorInput: "hsl(40 33% 98%)",
-    colorInputForeground: "hsl(20 20% 20%)",
-    colorNeutral: "hsl(30 20% 90%)",
+    colorInput: "hsl(240 5% 98%)",
+    colorInputForeground: "hsl(240 10% 10%)",
+    colorNeutral: "hsl(240 10% 90%)",
     fontFamily: "'Plus Jakarta Sans', sans-serif",
-    borderRadius: "0.75rem",
+    borderRadius: "1rem",
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-xl border border-border/50",
+    cardBox: "bg-white rounded-[1.5rem] w-[440px] max-w-full overflow-hidden shadow-xl border border-border/60",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "font-display text-2xl font-bold text-foreground",
-    headerSubtitle: "text-muted-foreground",
+    headerTitle: "font-display text-2xl font-bold text-foreground tracking-tight",
+    headerSubtitle: "text-muted-foreground font-medium",
     socialButtonsBlockButtonText: "font-medium text-foreground",
-    formFieldLabel: "text-foreground font-medium",
-    footerActionLink: "text-primary font-semibold hover:text-primary/80",
+    formFieldLabel: "text-foreground font-semibold text-sm",
+    footerActionLink: "text-primary font-bold hover:text-primary/80 transition-colors",
     footerActionText: "text-muted-foreground",
-    dividerText: "text-muted-foreground",
-    formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm transition-all",
-    formFieldInput: "bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary",
+    dividerText: "text-muted-foreground font-medium",
+    formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md shadow-primary/20 transition-all active:scale-[0.98] rounded-xl h-11",
+    formFieldInput: "bg-background border border-border text-foreground rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary h-11 transition-all",
   },
 };
 
 function SignInPage() {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-      <div className="absolute bottom-0 left-0 w-[60vw] h-[60vw] bg-secondary/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3"></div>
-      <div className="relative z-10">
+      <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-[60vw] h-[60vw] bg-accent/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+      <div className="relative z-10 w-full flex justify-center">
         <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
       </div>
     </div>
@@ -93,9 +93,9 @@ function SignInPage() {
 function SignUpPage() {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-[40vw] h-[40vw] bg-secondary/10 rounded-full blur-3xl -translate-y-1/3 -translate-x-1/4"></div>
-      <div className="absolute bottom-0 right-0 w-[50vw] h-[50vw] bg-primary/10 rounded-full blur-3xl translate-y-1/4 translate-x-1/4"></div>
-      <div className="relative z-10">
+      <div className="absolute top-0 left-0 w-[40vw] h-[40vw] bg-accent/5 rounded-full blur-3xl -translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
+      <div className="absolute bottom-0 right-0 w-[50vw] h-[50vw] bg-primary/10 rounded-full blur-3xl translate-y-1/4 translate-x-1/4 pointer-events-none"></div>
+      <div className="relative z-10 w-full flex justify-center">
         <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
       </div>
     </div>

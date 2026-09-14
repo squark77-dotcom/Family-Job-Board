@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Hand, Plus, Clock, Trash2, ClipboardList } from "lucide-react";
+import { Loader2, Hand, Plus, Clock, Trash2, ClipboardList, Zap } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -59,66 +59,65 @@ function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="font-bold shadow-sm">
+        <Button className="font-bold shadow-md shadow-primary/20 rounded-xl h-11 px-5 active:scale-95 transition-all">
           <Plus className="w-5 h-5 mr-2" /> New Job
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create a Job</DialogTitle>
+      <DialogContent className="sm:max-w-[425px] rounded-[1.5rem] p-6 border-border shadow-xl">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="font-display text-2xl font-bold tracking-tight">Create a Job</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-5">
           <div className="space-y-2">
-            <Label>Title</Label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Wash the car" />
+            <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Title</Label>
+            <Input className="h-11 rounded-xl bg-muted/50 border-border" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Wash the car" />
           </div>
           <div className="space-y-2">
-            <Label>Description (optional)</Label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Any special instructions?" />
+            <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Description (optional)</Label>
+            <Textarea className="rounded-xl bg-muted/50 border-border min-h-[80px]" value={description} onChange={e => setDescription(e.target.value)} placeholder="Any special instructions?" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Points</Label>
-              <Input type="number" min="1" max="100" value={points} onChange={e => setPoints(e.target.value)} />
+              <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Points</Label>
+              <Input className="h-11 rounded-xl bg-muted/50 border-border font-bold text-primary" type="number" min="1" max="100" value={points} onChange={e => setPoints(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Est. Minutes (optional)</Label>
-              <Input type="number" min="1" value={estimatedMinutes} onChange={e => setEstimatedMinutes(e.target.value)} placeholder="15" />
+              <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Est. Minutes</Label>
+              <Input className="h-11 rounded-xl bg-muted/50 border-border font-bold" type="number" min="1" value={estimatedMinutes} onChange={e => setEstimatedMinutes(e.target.value)} placeholder="15" />
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Job Type</Label>
-            <Select value={type} onValueChange={(val: any) => setType(val)}>
-              <SelectTrigger>
-                <SelectValue />
+            <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Job Type</Label>
+            <Select value={type} onValueChange={(v: "board"|"assigned") => setType(v)}>
+              <SelectTrigger className="h-11 rounded-xl bg-muted/50 border-border font-semibold">
+                <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="board">Shared Board (Anyone can claim)</SelectItem>
-                <SelectItem value="assigned">Assigned to specific child</SelectItem>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="board" className="font-medium rounded-lg">Shared Board (Anyone can claim)</SelectItem>
+                <SelectItem value="assigned" className="font-medium rounded-lg">Assigned to specific teen</SelectItem>
               </SelectContent>
             </Select>
           </div>
           {type === "assigned" && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <Label>Assign To</Label>
+              <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Assign To</Label>
               <Select value={assignedChildId} onValueChange={setAssignedChildId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select child" />
+                <SelectTrigger className="h-11 rounded-xl bg-muted/50 border-border font-semibold">
+                  <SelectValue placeholder="Select profile" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">-- Select Child --</SelectItem>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="none" className="font-medium rounded-lg">-- Select Profile --</SelectItem>
                   {childrenList.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id} className="font-medium rounded-lg">{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           )}
         </div>
-        <DialogFooter>
-          <Button onClick={handleSubmit} disabled={createJob.isPending}>
-            {createJob.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Save Job
+        <DialogFooter className="mt-6">
+          <Button className="w-full h-12 font-bold rounded-xl active:scale-[0.98] transition-all" onClick={handleSubmit} disabled={createJob.isPending}>
+            {createJob.isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : "Save Job"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -158,49 +157,49 @@ function BoardJobCard({ job, role }: { job: Job; role: string }) {
   };
 
   return (
-    <Card className="shadow-sm border-border/50 hover:shadow-md transition-all group overflow-hidden relative">
-      <div className="absolute inset-y-0 left-0 w-1 bg-primary/20 group-hover:bg-primary transition-colors"></div>
-      <CardHeader className="pb-3 pl-6">
-        <div className="flex justify-between items-start">
+    <Card className="shadow-sm border-border/50 hover:shadow-md transition-all group overflow-hidden relative rounded-[1.25rem]">
+      <div className="absolute inset-y-0 left-0 w-1.5 bg-primary/20 group-hover:bg-primary transition-colors"></div>
+      <CardHeader className="pb-3 pl-6 pr-5 pt-5">
+        <div className="flex justify-between items-start gap-2">
           <CardTitle className="text-lg leading-tight group-hover:text-primary transition-colors">{job.title}</CardTitle>
-          <Badge variant="secondary" className="font-bold bg-primary/10 text-primary border-0">
-            {job.points} pts
-          </Badge>
+          <div className="shrink-0 bg-primary/10 text-primary font-bold px-2.5 py-1 rounded-md text-xs flex items-center shadow-sm">
+            <Zap className="w-3 h-3 mr-1 fill-primary" /> {job.points} pts
+          </div>
         </div>
         {job.description && (
-          <CardDescription className="mt-2 text-sm">{job.description}</CardDescription>
+          <CardDescription className="mt-2 text-sm text-muted-foreground/80 line-clamp-2">{job.description}</CardDescription>
         )}
       </CardHeader>
-      <CardContent className="pb-3 pl-6">
-        <div className="flex items-center text-xs text-muted-foreground gap-3">
+      <CardContent className="pb-4 pl-6 pr-5">
+        <div className="flex items-center text-xs font-bold text-muted-foreground gap-3">
           {job.estimatedMinutes && (
-            <div className="flex items-center bg-muted px-2 py-1 rounded-md">
-              <Clock className="w-3 h-3 mr-1" /> {job.estimatedMinutes} min
+            <div className="flex items-center bg-muted/50 px-2.5 py-1.5 rounded-md">
+              <Clock className="w-3.5 h-3.5 mr-1.5 opacity-70" /> {job.estimatedMinutes}m
             </div>
           )}
-          <span className="text-slate-400">Added {new Date(job.createdAt).toLocaleDateString()}</span>
+          <span className="text-muted-foreground/50 uppercase tracking-wider text-[10px]">Added {new Date(job.createdAt).toLocaleDateString()}</span>
         </div>
       </CardContent>
       {role === "child" && (
-        <CardFooter className="pl-6 pt-0">
+        <CardFooter className="pl-6 pr-5 pb-5 pt-0">
           <Button 
-            className="w-full bg-orange-100 hover:bg-orange-200 text-orange-800 shadow-none" 
+            className="w-full bg-accent hover:bg-accent/90 text-white font-bold h-11 rounded-xl shadow-sm shadow-accent/20 active:scale-95 transition-all" 
             onClick={handleClaim} 
             disabled={claimJob.isPending}
           >
-            {claimJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Hand className="w-4 h-4 mr-2" /> Claim Job</>}
+            {claimJob.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Hand className="w-5 h-5 mr-2" /> Claim Job</>}
           </Button>
         </CardFooter>
       )}
       {role === "parent" && (
-        <CardFooter className="pl-6 pt-0">
+        <CardFooter className="pl-6 pr-5 pb-5 pt-0">
           <Button 
             variant="ghost" 
-            className="w-full text-destructive hover:bg-destructive/10" 
+            className="w-full text-destructive hover:bg-destructive/10 font-bold h-11 rounded-xl" 
             onClick={handleDelete} 
             disabled={deleteJob.isPending}
           >
-            {deleteJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Trash2 className="w-4 h-4 mr-2" /> Delete</>}
+            {deleteJob.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Trash2 className="w-5 h-5 mr-2" /> Delete</>}
           </Button>
         </CardFooter>
       )}
@@ -221,12 +220,12 @@ export default function Board() {
   const { data: childrenList } = useListChildren({ query: { enabled: isParent, queryKey: getListChildrenQueryKey() } });
 
   return (
-    <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
+    <div className="p-4 lg:p-8 space-y-8 animate-in fade-in duration-500">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Job Board</h1>
-          <p className="text-muted-foreground mt-1">
-            Extra jobs anyone can claim for bonus points.
+          <h1 className="font-display text-3xl font-extrabold text-foreground tracking-tight">Job Board</h1>
+          <p className="text-muted-foreground font-medium mt-1">
+            Extra tasks anyone can claim for bonus points.
           </p>
         </div>
         {isParent && childrenList && (
@@ -235,21 +234,21 @@ export default function Board() {
       </div>
 
       {isJobsLoading ? (
-        <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+        <div className="flex justify-center p-8 mt-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
       ) : jobs && jobs.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
           {jobs.map(job => (
             <BoardJobCard key={job.id} job={job} role={role || "child"} />
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-border/60 max-w-2xl mx-auto mt-8">
-          <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <ClipboardList className="w-8 h-8 text-slate-300" />
+        <div className="text-center py-20 bg-muted/20 rounded-[2rem] border-2 border-dashed border-border/50 max-w-2xl mx-auto mt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="w-20 h-20 bg-card rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-border">
+            <ClipboardList className="w-10 h-10 text-muted-foreground/50" />
           </div>
-          <h3 className="text-xl font-bold text-foreground mb-2">The board is empty</h3>
-          <p className="text-muted-foreground">
-            {isParent ? "Create some new jobs to get things moving!" : "Check back later for more opportunities to earn points."}
+          <h3 className="text-2xl font-display font-bold text-foreground mb-2 tracking-tight">The board is empty</h3>
+          <p className="text-muted-foreground font-medium text-lg">
+            {isParent ? "Create some new jobs to get things moving." : "Check back later for more opportunities."}
           </p>
         </div>
       )}
