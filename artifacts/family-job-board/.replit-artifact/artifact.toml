@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Family Job Board"
+description = "A friendly family contribution app where parents create and review jobs, children claim work, and approved contributions earn points."
+version = "1.0.0"
+id = "artifacts/family-job-board"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23601
+
+[services.development]
+run = "pnpm --filter @workspace/family-job-board run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/family-job-board", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/family-job-board/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23601"
+BASE_PATH = "/"

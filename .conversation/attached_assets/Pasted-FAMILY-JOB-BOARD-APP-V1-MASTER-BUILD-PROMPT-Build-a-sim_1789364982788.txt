@@ -1,0 +1,750 @@
+FAMILY JOB BOARD APP
+
+V1 MASTER BUILD PROMPT
+
+Build a simple, attractive cross-platform family contribution app for iOS and Android.
+
+Use React Native with Expo so the application can eventually be published to both the Apple App Store and Google Play.
+
+The app is designed for one parent and three children.
+
+The purpose is to encourage children to contribute to the household by:
+
+1. Completing jobs assigned by the parent.
+2. Choosing additional jobs from a shared Job Board.
+3. Signing off jobs when completed.
+4. Earning contribution points.
+5. Developing initiative by voluntarily choosing useful jobs.
+
+This is not a payment or allowance app. Points represent contribution and motivation.
+
+⸻
+
+1. USERS
+
+There are two user types.
+
+Parent
+
+The parent can:
+
+* Create jobs
+* Edit jobs
+* Delete jobs
+* Assign jobs to a specific child
+* Add jobs to the shared Job Board
+* Create recurring jobs
+* Set job points
+* Set due dates
+* See who claimed a Job Board job
+* Review completed jobs
+* Approve completed jobs
+* Request changes to a submitted job
+* Return abandoned jobs to the Job Board
+* Award bonus initiative points
+* View contribution history
+* View contribution totals for all three children
+
+Children
+
+There are three child profiles.
+
+Each child can:
+
+* View their assigned jobs
+* View the shared Job Board
+* Claim any available Job Board job
+* Complete a claimed job
+* Submit the job for parent review
+* Sign off their completed work
+* See their own points
+* See their contribution history
+
+Children cannot:
+
+* Change job points
+* Change job ownership
+* Approve their own work
+* Award themselves points
+* Delete jobs
+* Alter completion history
+* Change another child’s information
+
+⸻
+
+2. CORE WORKFLOW
+
+The central workflow must be:
+
+CREATE → ASSIGN OR PUBLISH → CLAIM → COMPLETE → SUBMIT → PARENT REVIEW → APPROVE → POINTS AWARDED
+
+For assigned jobs:
+
+Parent assigns job → Child completes → Child submits → Parent approves → Points awarded
+
+For Job Board jobs:
+
+Parent publishes job → Any child claims it → Child completes → Child submits → Parent approves → Points awarded
+
+⸻
+
+3. MAIN SCREENS
+
+Create four primary sections.
+
+TODAY
+
+Show the selected child’s current jobs.
+
+Separate:
+
+My Assigned Jobs
+
+Jobs specifically assigned to that child.
+
+My Claimed Jobs
+
+Jobs the child has voluntarily claimed from the Job Board.
+
+Each job should show:
+
+* Job name
+* Description
+* Points
+* Due date/time
+* Status
+
+Statuses should include:
+
+* To Do
+* Claimed
+* In Progress
+* Ready for Review
+* Changes Requested
+* Completed
+
+Show daily progress.
+
+Example:
+
+Today’s Contribution
+
+3 of 5 jobs completed
+
+⸻
+
+4. JOB BOARD
+
+The Job Board contains jobs available for any child to claim.
+
+Each job should display:
+
+* Job name
+* Description
+* Points
+* Optional estimated effort
+* Due date, if applicable
+
+Example:
+
+Wash the car
+
+20 minutes
+
+3 points
+
+[ CLAIM JOB ]
+
+Any child can claim an available job.
+
+Once claimed:
+
+* The job immediately becomes unavailable to the other children.
+* The claiming child becomes responsible for it.
+* The parent can see who claimed it.
+
+Show:
+
+Claimed by Emma
+
+A child can then complete and submit the job.
+
+⸻
+
+5. CLAIMING RULE
+
+A Job Board job can only be claimed by one child at a time.
+
+The system must prevent two children on different devices from claiming the same job simultaneously.
+
+The database transaction must determine the successful claimant.
+
+The first successful claim wins.
+
+⸻
+
+6. ABANDONED JOBS
+
+A child cannot simply delete or abandon a claimed job.
+
+If they cannot complete it, the parent can return it to the Job Board.
+
+When returned:
+
+* The job becomes available again.
+* The previous claimant is recorded in the history.
+* The parent can see the previous claim.
+
+⸻
+
+7. COMPLETING A JOB
+
+When a child finishes a job, they select:
+
+COMPLETE JOB
+
+Then:
+
+SUBMIT FOR REVIEW
+
+The job status becomes:
+
+READY FOR REVIEW
+
+The child cannot award themselves the points.
+
+The parent must approve the work before the points become officially awarded.
+
+⸻
+
+8. PARENT REVIEW
+
+Create a simple parent review queue.
+
+Show:
+
+Jobs Awaiting Review
+
+For each job show:
+
+* Child
+* Job
+* Date submitted
+* Points available
+
+Parent options:
+
+APPROVE
+
+The job becomes:
+
+COMPLETED
+
+The points are awarded.
+
+REQUEST CHANGES
+
+The parent can enter a short reason.
+
+Example:
+
+Please sweep under the table as well.
+
+The job returns to the child as:
+
+CHANGES REQUESTED
+
+The child completes it again and resubmits it.
+
+REJECT
+
+The parent can reject the submission and return the job to an appropriate state.
+
+Keep a review history.
+
+⸻
+
+9. SIGN-OFF
+
+The child must actively sign off their completed work.
+
+Use a prominent button:
+
+✓ SIGN OFF
+
+Record:
+
+* Child
+* Job
+* Date
+* Time
+* Submission status
+
+The child cannot alter the recorded completion time afterwards.
+
+⸻
+
+10. POINTS
+
+Points represent contribution.
+
+Suggested defaults:
+
+* Small job: 1 point
+* Medium job: 2 points
+* Large job: 3 to 5 points
+
+The parent can change the point value for individual jobs.
+
+Points should only become official after parent approval.
+
+Do not treat points as money.
+
+⸻
+
+11. CONTRIBUTION TYPES
+
+Track two types of contribution separately.
+
+ASSIGNED CONTRIBUTION
+
+Jobs the parent specifically assigned to the child.
+
+VOLUNTARY CONTRIBUTION
+
+Jobs the child independently selected from the Job Board.
+
+This distinction is important.
+
+The purpose is to encourage children to notice things that need doing and take initiative.
+
+⸻
+
+12. BONUS INITIATIVE POINTS
+
+The parent can manually award bonus points.
+
+Example:
+
++2 Initiative Points
+
+Reason:
+
+Cleaned the kitchen without being asked.
+
+Record:
+
+* Child
+* Points
+* Reason
+* Date
+* Parent
+
+Children cannot award themselves bonus points.
+
+⸻
+
+13. CONTRIBUTION SCREEN
+
+Create a simple contribution dashboard.
+
+For each child display:
+
+* Total approved points
+* Assigned jobs completed
+* Voluntary jobs completed
+* Bonus points
+* Current week’s contribution
+* Historical contribution
+
+Example:
+
+Emma
+
+12 points
+
+4 assigned
+
+3 voluntary
+
+2 bonus
+
+⸻
+
+14. PARENT DASHBOARD
+
+The parent should be able to quickly see:
+
+TODAY
+
+* Jobs completed
+* Jobs outstanding
+* Jobs awaiting review
+* Jobs with changes requested
+
+CONTRIBUTION
+
+A comparison of the three children.
+
+Example:
+
+Child	Assigned	Voluntary	Bonus	Total
+Emma	5	3	2	15
+Jack	4	2	0	8
+Liam	5	4	1	14
+
+The purpose is visibility, not competition.
+
+⸻
+
+15. RECURRING JOBS
+
+The parent can create recurring jobs.
+
+Options:
+
+* Daily
+* Weekly
+* Selected days of the week
+* Custom schedule
+
+A recurring job should automatically generate the appropriate new job when required.
+
+Examples:
+
+* Feed dog every day
+* Put bins out every Wednesday
+* Clean bathroom every Saturday
+
+Recurring jobs can be:
+
+* Assigned to one child
+* Published to the Job Board
+
+⸻
+
+16. FAMILY SETUP
+
+The parent should be able to create the family.
+
+V1 should support:
+
+* One parent
+* Three children
+
+Child profiles should contain:
+
+* Name
+* Optional avatar
+* Active/inactive status
+
+The parent can:
+
+* Add a child
+* Rename a child
+* Change avatar
+* Temporarily deactivate a child
+
+Do not hard-code the names of the three children.
+
+⸻
+
+17. AUTHENTICATION AND SECURITY
+
+Use secure authentication.
+
+The parent must have protected administrative access.
+
+Children must only be able to access their own profile and permitted family information.
+
+Children must not be able to manipulate:
+
+* Points
+* Job ownership
+* Approval status
+* Completion history
+* Parent functions
+
+Use proper database security rules.
+
+Do not rely solely on hiding buttons in the user interface.
+
+⸻
+
+18. DATA MODEL
+
+Create a clean database structure.
+
+Users
+
+* id
+* name
+* role
+* familyId
+* avatar
+* active
+* createdAt
+
+Families
+
+* id
+* parentId
+* createdAt
+
+Jobs
+
+* id
+* familyId
+* title
+* description
+* points
+* type
+* assignedChildId
+* claimedByChildId
+* status
+* dueDate
+* recurringRule
+* createdAt
+* updatedAt
+
+Job Submissions
+
+* id
+* jobId
+* childId
+* submittedAt
+* status
+* parentResponse
+* reviewedAt
+* reviewedBy
+
+Points Transactions
+
+* id
+* familyId
+* childId
+* points
+* type
+* jobId
+* reason
+* createdAt
+
+Point transaction types:
+
+* Assigned Job
+* Voluntary Job
+* Initiative Bonus
+
+Keep a transaction history rather than simply storing one editable points total.
+
+⸻
+
+19. DESIGN
+
+The application should feel:
+
+* Modern
+* Friendly
+* Positive
+* Simple
+* Child-friendly
+* Easy to understand
+
+Use large touch targets.
+
+Keep navigation obvious.
+
+Avoid unnecessary screens.
+
+Avoid a punitive or school-like appearance.
+
+Use positive language such as:
+
+* Ready to help?
+* Job claimed
+* Nice work
+* Ready for review
+* Great initiative
+* Contribution points
+* Job complete
+
+⸻
+
+20. V1 SHOULD NOT INCLUDE
+
+Do not build these features yet:
+
+* Payments
+* Pocket money
+* Allowances
+* Rewards marketplace
+* Chat
+* Social media
+* Advertising
+* Public profiles
+* Location tracking
+* AI
+* Multiple families
+* Multiple parents
+* Complex gamification
+* Native home-screen widgets
+
+These can be considered for V2.
+
+⸻
+
+21. FUTURE V2 POSSIBILITIES
+
+Design the architecture so these could be added later:
+
+* Home-screen widgets
+* Push notifications
+* Achievement badges
+* Streaks
+* Family goals
+* More advanced statistics
+* Rewards
+* Multiple parents
+* More than three children
+* Photos as proof of completion
+* Voice-created jobs
+
+Do not implement them in V1 unless required for the core functionality.
+
+⸻
+
+22. DEVELOPMENT APPROACH
+
+Build the application incrementally.
+
+Do not attempt to build the entire production application in one step.
+
+Work through these phases:
+
+PHASE 1
+
+Build:
+
+* Expo project
+* Navigation
+* Authentication
+* Family setup
+* Parent and child roles
+* Database
+* Security rules
+* Child profiles
+
+PHASE 2
+
+Build:
+
+* Job creation
+* Assigned jobs
+* Job Board
+* Job claiming
+* Job statuses
+* Due dates
+* Points
+
+PHASE 3
+
+Build:
+
+* Job submission
+* Child sign-off
+* Parent review
+* Approve
+* Request Changes
+* Reject
+* Review history
+
+PHASE 4
+
+Build:
+
+* Contribution dashboard
+* Assigned contribution
+* Voluntary contribution
+* Bonus points
+* Weekly totals
+* Historical totals
+
+PHASE 5
+
+Build:
+
+* Recurring jobs
+* Family management
+* Improved error handling
+* Empty states
+* Loading states
+* Offline/network error handling
+
+PHASE 6
+
+Test thoroughly on both iOS and Android.
+
+⸻
+
+23. TESTING REQUIREMENTS
+
+Test at minimum:
+
+* Parent creates a job
+* Parent assigns a job
+* Child sees assigned job
+* Child completes job
+* Child signs off
+* Parent receives submission
+* Parent approves
+* Points are awarded
+* Parent requests changes
+* Child resubmits
+* Parent rejects a submission
+* Parent creates Job Board job
+* Child 1 claims it
+* Child 2 cannot claim it
+* Child 3 cannot claim it
+* Child completes it
+* Parent approves it
+* Voluntary points are recorded separately
+* Parent awards initiative points
+* Recurring job generates correctly
+* Two children attempt to claim the same job simultaneously
+* Parent cannot accidentally award duplicate points
+* Children cannot modify points
+* Children cannot access parent functions
+* Data remains correct after closing and reopening the app
+
+⸻
+
+24. IMPORTANT DEVELOPMENT RULE
+
+Do not create fake functionality.
+
+If a feature requires backend functionality, database functionality, authentication, native functionality or another service, implement it properly or clearly identify what remains to be configured.
+
+Do not create buttons that appear to work but do nothing.
+
+Do not use placeholder data once the real database functionality has been implemented.
+
+⸻
+
+25. FIRST BUILD INSTRUCTION
+
+Start with PHASE 1 ONLY.
+
+Create the project structure, navigation, authentication, family setup, parent/child roles, database schema and security model.
+
+Do not build the Job Board yet.
+
+After Phase 1 is complete:
+
+1. Run the application.
+2. Test the parent and child flows.
+3. Check for errors.
+4. Explain what has been completed.
+5. List anything that still requires configuration.
+6. Wait for approval before moving to Phase 2.
+
+Build this as a real production application, not a static prototype.

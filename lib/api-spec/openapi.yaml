@@ -3,13 +3,19 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Family Job Board API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: family
+    description: Family setup and child profiles
+  - name: jobs
+    description: Job creation and contribution workflow
+  - name: points
+    description: Contribution points and history
 paths:
   /healthz:
     get:
@@ -24,7 +30,441 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /me:
+    get:
+      operationId: getCurrentUser
+      tags: [family]
+      summary: Get the signed-in user and family
+      responses:
+        "200":
+          description: Current user context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /family:
+    post:
+      operationId: createFamily
+      tags: [family]
+      summary: Create the signed-in parent's family
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FamilySetupInput"
+      responses:
+        "201":
+          description: Family created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: User already belongs to a family
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      operationId: updateFamily
+      tags: [family]
+      summary: Update family details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FamilyUpdateInput"
+      responses:
+        "200":
+          description: Updated family
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /family/children:
+    get:
+      operationId: listChildren
+      tags: [family]
+      summary: List active and inactive children in the family
+      responses:
+        "200":
+          description: Children
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Child"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createChild
+      tags: [family]
+      summary: Add a child profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChildInput"
+      responses:
+        "201":
+          description: Child created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Child"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /family/children/{childId}:
+    parameters:
+      - $ref: "#/components/parameters/ChildId"
+    patch:
+      operationId: updateChild
+      tags: [family]
+      summary: Rename or deactivate a child profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChildUpdate"
+      responses:
+        "200":
+          description: Updated child
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Child"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [jobs]
+      summary: Get family dashboard totals and current work
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /jobs:
+    get:
+      operationId: listJobs
+      tags: [jobs]
+      summary: List jobs visible to the signed-in user
+      parameters:
+        - in: query
+          name: type
+          schema:
+            $ref: "#/components/schemas/JobType"
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/JobStatus"
+        - in: query
+          name: childId
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createJob
+      tags: [jobs]
+      summary: Create an assigned or Job Board job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobInput"
+      responses:
+        "201":
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /jobs/{jobId}:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    patch:
+      operationId: updateJob
+      tags: [jobs]
+      summary: Update a job before it is completed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobUpdate"
+      responses:
+        "200":
+          description: Updated job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteJob
+      tags: [jobs]
+      summary: Delete a job
+      responses:
+        "204":
+          description: Job deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /jobs/{jobId}/claim:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    post:
+      operationId: claimJob
+      tags: [jobs]
+      summary: Atomically claim an available Job Board job
+      responses:
+        "200":
+          description: Claimed job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Job is no longer available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /jobs/{jobId}/start:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    post:
+      operationId: startJob
+      tags: [jobs]
+      summary: Start work on an assigned or claimed job
+      responses:
+        "200":
+          description: Job in progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /jobs/{jobId}/complete:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    post:
+      operationId: completeJob
+      tags: [jobs]
+      summary: Sign off that the child completed the work
+      responses:
+        "200":
+          description: Completed work awaiting submission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /jobs/{jobId}/submit:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    post:
+      operationId: submitJob
+      tags: [jobs]
+      summary: Submit signed-off work for parent review
+      responses:
+        "200":
+          description: Job ready for review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSubmission"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /reviews:
+    get:
+      operationId: listReviews
+      tags: [jobs]
+      summary: List jobs awaiting parent review and review history
+      responses:
+        "200":
+          description: Review queue
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/JobSubmission"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /jobs/{jobId}/review:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    post:
+      operationId: reviewJob
+      tags: [jobs]
+      summary: Approve, request changes, or reject submitted work
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobReviewInput"
+      responses:
+        "200":
+          description: Reviewed job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /points:
+    get:
+      operationId: getPoints
+      tags: [points]
+      summary: Get point totals and transaction history
+      parameters:
+        - in: query
+          name: childId
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Points summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PointsSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /points/bonus:
+    post:
+      operationId: awardBonus
+      tags: [points]
+      summary: Award initiative points to a child
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BonusPointInput"
+      responses:
+        "201":
+          description: Bonus transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PointTransaction"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 components:
+  parameters:
+    ChildId:
+      name: childId
+      in: path
+      required: true
+      schema:
+        type: string
+    JobId:
+      name: jobId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: User is not allowed to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +473,198 @@ components:
           type: string
       required:
         - status
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    Role:
+      type: string
+      enum: [parent, child]
+    JobType:
+      type: string
+      enum: [assigned, board]
+    JobStatus:
+      type: string
+      enum: [to_do, claimed, in_progress, completed, ready_for_review, changes_requested]
+    ReviewAction:
+      type: string
+      enum: [approve, request_changes, reject]
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        familyId: { type: ["string", "null"] }
+        avatar: { type: ["string", "null"] }
+        active: { type: boolean }
+      required: [id, name, role, familyId, avatar, active]
+    Child:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        avatar: { type: ["string", "null"] }
+        active: { type: boolean }
+        totalPoints: { type: integer }
+        assignedCompleted: { type: integer }
+        voluntaryCompleted: { type: integer }
+        bonusPoints: { type: integer }
+      required: [id, name, avatar, active, totalPoints, assignedCompleted, voluntaryCompleted, bonusPoints]
+    Family:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        parentId: { type: string }
+        createdAt: { type: string, format: date-time }
+        children:
+          type: array
+          items: { $ref: "#/components/schemas/Child" }
+      required: [id, name, parentId, createdAt, children]
+    UserProfile:
+      type: object
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+        family: { $ref: "#/components/schemas/Family" }
+      required: [user]
+    FamilySetupInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        children:
+          type: array
+          minItems: 1
+          maxItems: 3
+          items: { $ref: "#/components/schemas/ChildInput" }
+      required: [name, children]
+    FamilyUpdateInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+    ChildInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        avatar: { type: ["string", "null"], maxLength: 8 }
+      required: [name]
+    ChildUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 60 }
+        avatar: { type: ["string", "null"], maxLength: 8 }
+        active: { type: boolean }
+    Job:
+      type: object
+      properties:
+        id: { type: string }
+        familyId: { type: string }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        points: { type: integer, minimum: 1, maximum: 100 }
+        type: { $ref: "#/components/schemas/JobType" }
+        assignedChildId: { type: ["string", "null"] }
+        assignedChildName: { type: ["string", "null"] }
+        claimedByChildId: { type: ["string", "null"] }
+        claimedByChildName: { type: ["string", "null"] }
+        status: { $ref: "#/components/schemas/JobStatus" }
+        dueDate: { type: ["string", "null"], format: date-time }
+        estimatedMinutes: { type: ["integer", "null"], minimum: 1, maximum: 1440 }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        completedAt: { type: ["string", "null"], format: date-time }
+      required:
+        [id, familyId, title, description, points, type, assignedChildId, assignedChildName, claimedByChildId, claimedByChildName, status, dueDate, estimatedMinutes, createdAt, updatedAt, completedAt]
+    JobInput:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: ["string", "null"], maxLength: 500 }
+        points: { type: integer, minimum: 1, maximum: 100 }
+        type: { $ref: "#/components/schemas/JobType" }
+        assignedChildId: { type: ["string", "null"] }
+        dueDate: { type: ["string", "null"], format: date-time }
+        estimatedMinutes: { type: ["integer", "null"], minimum: 1, maximum: 1440 }
+      required: [title, points, type]
+    JobUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: ["string", "null"], maxLength: 500 }
+        points: { type: integer, minimum: 1, maximum: 100 }
+        assignedChildId: { type: ["string", "null"] }
+        dueDate: { type: ["string", "null"], format: date-time }
+        estimatedMinutes: { type: ["integer", "null"], minimum: 1, maximum: 1440 }
+    JobSubmission:
+      type: object
+      properties:
+        id: { type: string }
+        jobId: { type: string }
+        childId: { type: string }
+        childName: { type: string }
+        jobTitle: { type: string }
+        submittedAt: { type: string, format: date-time }
+        status: { $ref: "#/components/schemas/JobStatus" }
+        parentResponse: { type: ["string", "null"] }
+        reviewedAt: { type: ["string", "null"], format: date-time }
+        reviewedBy: { type: ["string", "null"] }
+        reviewAction: { type: ["string", "null"] }
+      required: [id, jobId, childId, childName, jobTitle, submittedAt, status, parentResponse, reviewedAt, reviewedBy, reviewAction]
+    JobReviewInput:
+      type: object
+      properties:
+        action: { $ref: "#/components/schemas/ReviewAction" }
+        reason: { type: ["string", "null"], maxLength: 300 }
+      required: [action]
+    PointTransaction:
+      type: object
+      properties:
+        id: { type: string }
+        familyId: { type: string }
+        childId: { type: string }
+        childName: { type: string }
+        points: { type: integer }
+        type: { type: string, enum: [assigned_job, voluntary_job, initiative_bonus] }
+        jobId: { type: ["string", "null"] }
+        reason: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+      required: [id, familyId, childId, childName, points, type, jobId, reason, createdAt]
+    PointsSummary:
+      type: object
+      properties:
+        totalPoints: { type: integer }
+        transactions:
+          type: array
+          items: { $ref: "#/components/schemas/PointTransaction" }
+        byChild:
+          type: array
+          items: { $ref: "#/components/schemas/Child" }
+      required: [totalPoints, transactions, byChild]
+    BonusPointInput:
+      type: object
+      properties:
+        childId: { type: string }
+        points: { type: integer, minimum: 1, maximum: 100 }
+        reason: { type: string, minLength: 1, maxLength: 300 }
+      required: [childId, points, reason]
+    Dashboard:
+      type: object
+      properties:
+        today:
+          type: object
+          properties:
+            completed: { type: integer }
+            outstanding: { type: integer }
+            awaitingReview: { type: integer }
+            changesRequested: { type: integer }
+          required: [completed, outstanding, awaitingReview, changesRequested]
+        children:
+          type: array
+          items: { $ref: "#/components/schemas/Child" }
+        recentJobs:
+          type: array
+          items: { $ref: "#/components/schemas/Job" }
+      required: [today, children, recentJobs]
 
