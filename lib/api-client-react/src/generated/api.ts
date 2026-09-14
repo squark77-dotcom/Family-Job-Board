@@ -28,6 +28,7 @@ import type {
   Dashboard,
   Error,
   Family,
+  FamilyJoinInput,
   FamilySetupInput,
   FamilyUpdateInput,
   ForbiddenResponse,
@@ -402,6 +403,94 @@ export const useUpdateFamily = <TError = ErrorType<UnauthorizedResponse | Forbid
         TContext
       > => {
       return useMutation(getUpdateFamilyMutationOptions(options));
+    }
+
+export const getJoinFamilyUrl = () => {
+
+
+
+
+  return `/api/family/join`
+}
+
+/**
+ * @summary Link the signed-in account to an unclaimed child profile
+ */
+export const joinFamily = async (familyJoinInput: FamilyJoinInput, options?: Parameters<typeof customFetch>[1]): Promise<UserProfile> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<UserProfile>(getJoinFamilyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(familyJoinInput)
+  }
+);}
+
+
+
+
+
+export const getJoinFamilyMutationKey = () => ['joinFamily'] as const;
+
+export const getJoinFamilyMutationOptions = <TError = ErrorType<BadRequestResponse | UnauthorizedResponse | Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof joinFamily>>, TError,JoinFamilyMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof joinFamily>>, TError,JoinFamilyMutationVariables, TContext> => {
+
+const mutationKey = getJoinFamilyMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof joinFamily>>, JoinFamilyMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  joinFamily(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type JoinFamilyMutationResult = NonNullable<Awaited<ReturnType<typeof joinFamily>>>
+    export type JoinFamilyMutationBody = BodyType<FamilyJoinInput>
+    export type JoinFamilyMutationError = ErrorType<BadRequestResponse | UnauthorizedResponse | Error>
+    export type JoinFamilyMutationVariables = {data: BodyType<FamilyJoinInput>}
+
+    /**
+ * @summary Link the signed-in account to an unclaimed child profile
+ */
+export const useJoinFamily = <TError = ErrorType<BadRequestResponse | UnauthorizedResponse | Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof joinFamily>>, TError,JoinFamilyMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof joinFamily>>,
+        TError,
+        JoinFamilyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getJoinFamilyMutationOptions(options));
     }
 
 export const getListChildrenUrl = () => {

@@ -15,6 +15,7 @@ export * from './dashboard';
 export * from './dashboardToday';
 export * from './error';
 export * from './family';
+export * from './familyJoinInput';
 export * from './familySetupInput';
 export * from './familyUpdateInput';
 export * from './forbiddenResponse';

@@ -33,12 +33,14 @@ export const GetCurrentUserResponse = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "parentId": zod.string(),
+  "joinCode": zod.string(),
   "createdAt": zod.coerce.date(),
   "children": zod.array(zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "avatar": zod.string().nullable(),
   "active": zod.boolean(),
+  "linked": zod.boolean(),
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
@@ -73,12 +75,14 @@ export const CreateFamilyResponse = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "parentId": zod.string(),
+  "joinCode": zod.string(),
   "createdAt": zod.coerce.date(),
   "children": zod.array(zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "avatar": zod.string().nullable(),
   "active": zod.boolean(),
+  "linked": zod.boolean(),
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
@@ -102,17 +106,62 @@ export const UpdateFamilyResponse = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "parentId": zod.string(),
+  "joinCode": zod.string(),
   "createdAt": zod.coerce.date(),
   "children": zod.array(zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "avatar": zod.string().nullable(),
   "active": zod.boolean(),
+  "linked": zod.boolean(),
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
   "bonusPoints": zod.number().int()
 }))
+})
+
+
+/**
+ * @summary Link the signed-in account to an unclaimed child profile
+ */
+export const joinFamilyBodyJoinCodeMin = 6;
+export const joinFamilyBodyJoinCodeMax = 12;
+
+
+
+export const JoinFamilyBody = zod.object({
+  "joinCode": zod.string().min(joinFamilyBodyJoinCodeMin).max(joinFamilyBodyJoinCodeMax),
+  "childId": zod.string()
+})
+
+export const JoinFamilyResponse = zod.object({
+  "user": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "role": zod.enum(['parent', 'child']),
+  "familyId": zod.string().nullable(),
+  "avatar": zod.string().nullable(),
+  "active": zod.boolean()
+}),
+  "family": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "parentId": zod.string(),
+  "joinCode": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "children": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "avatar": zod.string().nullable(),
+  "active": zod.boolean(),
+  "linked": zod.boolean(),
+  "totalPoints": zod.number().int(),
+  "assignedCompleted": zod.number().int(),
+  "voluntaryCompleted": zod.number().int(),
+  "bonusPoints": zod.number().int()
+}))
+}).optional()
 })
 
 
@@ -124,6 +173,7 @@ export const ListChildrenResponseItem = zod.object({
   "name": zod.string(),
   "avatar": zod.string().nullable(),
   "active": zod.boolean(),
+  "linked": zod.boolean(),
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
@@ -151,6 +201,7 @@ export const CreateChildResponse = zod.object({
   "name": zod.string(),
   "avatar": zod.string().nullable(),
   "active": zod.boolean(),
+  "linked": zod.boolean(),
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
@@ -182,6 +233,7 @@ export const UpdateChildResponse = zod.object({
   "name": zod.string(),
   "avatar": zod.string().nullable(),
   "active": zod.boolean(),
+  "linked": zod.boolean(),
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
@@ -210,6 +262,7 @@ export const GetDashboardResponse = zod.object({
   "name": zod.string(),
   "avatar": zod.string().nullable(),
   "active": zod.boolean(),
+  "linked": zod.boolean(),
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
@@ -590,6 +643,7 @@ export const GetPointsResponse = zod.object({
   "name": zod.string(),
   "avatar": zod.string().nullable(),
   "active": zod.boolean(),
+  "linked": zod.boolean(),
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),

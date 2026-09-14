@@ -11,6 +11,7 @@ export interface Family {
   id: string;
   name: string;
   parentId: string;
+  joinCode: string;
   createdAt: Date;
   children: Child[];
 }

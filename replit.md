@@ -1,6 +1,6 @@
-# [Project name]
+# Family Job Board
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A family contribution app where parents create and review household jobs, children claim and submit work, and approved contributions earn points.
 
 ## Run & Operate
 
@@ -22,15 +22,26 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/family-job-board` — responsive React web app and Clerk auth screens
+- `artifacts/api-server/src/routes/family-job-board.ts` — role-aware family, job, review, and points API
+- `lib/api-spec/openapi.yaml` — source of truth for API contracts
+- `lib/db/src/schema/family-job-board.ts` — PostgreSQL schema
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Each family member uses their own Clerk account. A parent creates child profiles, and each child links their account to one unclaimed profile with the family join code.
+- Authorization is enforced in API routes from the Clerk user mapping; the client-side role-aware UI is not treated as a security boundary.
+- Job Board claims use one conditional database update so only the first child can claim a job.
+- Approved points are immutable ledger entries. A unique job constraint prevents duplicate awards.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Parent family setup and management for up to three child profiles
+- Assigned jobs and a shared Job Board
+- Child claiming, starting, sign-off, and review submission
+- Parent approval, change requests, rejection, and initiative bonuses
+- Assigned, voluntary, and bonus contribution tracking
+- Responsive Today, Board, Review, Contributions, and Family navigation
 
 ## User preferences
 
@@ -38,7 +49,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Run API code generation after every OpenAPI change.
+- Clerk browser API calls use session cookies; do not add bearer-token handling to the web app.
+- Native Expo clients will need bearer-token transport and must be built from replit.com rather than the iOS Replit app.
 
 ## Pointers
 

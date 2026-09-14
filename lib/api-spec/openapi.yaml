@@ -93,6 +93,34 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /family/join:
+    post:
+      operationId: joinFamily
+      tags: [family]
+      summary: Link the signed-in account to an unclaimed child profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FamilyJoinInput"
+      responses:
+        "200":
+          description: Child account linked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Child profile is already linked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /family/children:
     get:
       operationId: listChildren
@@ -508,22 +536,24 @@ components:
         name: { type: string }
         avatar: { type: ["string", "null"] }
         active: { type: boolean }
+        linked: { type: boolean }
         totalPoints: { type: integer }
         assignedCompleted: { type: integer }
         voluntaryCompleted: { type: integer }
         bonusPoints: { type: integer }
-      required: [id, name, avatar, active, totalPoints, assignedCompleted, voluntaryCompleted, bonusPoints]
+      required: [id, name, avatar, active, linked, totalPoints, assignedCompleted, voluntaryCompleted, bonusPoints]
     Family:
       type: object
       properties:
         id: { type: string }
         name: { type: string }
         parentId: { type: string }
+        joinCode: { type: string }
         createdAt: { type: string, format: date-time }
         children:
           type: array
           items: { $ref: "#/components/schemas/Child" }
-      required: [id, name, parentId, createdAt, children]
+      required: [id, name, parentId, joinCode, createdAt, children]
     UserProfile:
       type: object
       properties:
@@ -544,6 +574,12 @@ components:
       type: object
       properties:
         name: { type: string, minLength: 1, maxLength: 80 }
+    FamilyJoinInput:
+      type: object
+      properties:
+        joinCode: { type: string, minLength: 6, maxLength: 12 }
+        childId: { type: string }
+      required: [joinCode, childId]
     ChildInput:
       type: object
       properties:

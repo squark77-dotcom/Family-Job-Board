@@ -12,6 +12,7 @@ export interface Child {
   /** @nullable */
   avatar: string | null;
   active: boolean;
+  linked: boolean;
   totalPoints: number;
   assignedCompleted: number;
   voluntaryCompleted: number;

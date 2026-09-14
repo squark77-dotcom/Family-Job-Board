@@ -67,6 +67,7 @@ export interface Child {
   /** @nullable */
   avatar: string | null;
   active: boolean;
+  linked: boolean;
   totalPoints: number;
   assignedCompleted: number;
   voluntaryCompleted: number;
@@ -77,6 +78,7 @@ export interface Family {
   id: string;
   name: string;
   parentId: string;
+  joinCode: string;
   createdAt: string;
   children: Child[];
 }
@@ -118,6 +120,15 @@ export interface FamilyUpdateInput {
      * @maxLength 80
      */
   name?: string;
+}
+
+export interface FamilyJoinInput {
+  /**
+     * @minLength 6
+     * @maxLength 12
+     */
+  joinCode: string;
+  childId: string;
 }
 
 export interface ChildUpdate {
