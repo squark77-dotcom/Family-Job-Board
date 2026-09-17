@@ -1,17 +1,17 @@
-import { useGetCurrentUser, useGetDashboard, useListJobs, useStartJob, useCompleteJob, useSubmitJob, useDeleteJob, Job, JobStatus, getGetDashboardQueryKey, getListJobsQueryKey } from "@workspace/api-client-react";
+import { useGetCurrentUser, useGetDashboard, useListJobs, useStartJob, useCompleteJob, useDeleteJob, Job, JobStatus, getGetDashboardQueryKey, getListJobsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlayCircle, CheckCircle2, Send, Clock, CheckCircle, Trash2, ArrowRight } from "lucide-react";
+import { Loader2, PlayCircle, CheckCircle2, Clock, CheckCircle, Trash2, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
+import { playCompletionSound } from "@/lib/sound-effects";
 
 function JobCard({ job, role }: { job: Job; role: string }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const startJob = useStartJob();
-  const submitJob = useSubmitJob();
   const deleteJob = useDeleteJob();
   const completeJob = useCompleteJob();
 
@@ -20,16 +20,6 @@ function JobCard({ job, role }: { job: Job; role: string }) {
       onSuccess: () => {
         toast({ title: "Job started!" });
         queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
-      }
-    });
-  };
-
-  const handleSubmit = () => {
-    submitJob.mutate({ jobId: job.id }, {
-      onSuccess: () => {
-        toast({ title: "Submitted for review!" });
-        queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       }
     });
   };
@@ -49,9 +39,13 @@ function JobCard({ job, role }: { job: Job; role: string }) {
   const handleComplete = () => {
     completeJob.mutate({ jobId: job.id }, {
       onSuccess: () => {
-        toast({ title: "Job completed" });
+        playCompletionSound();
+        toast({
+          title: "Great work — sent for check-off!",
+          description: "Your parent or family owner can now review it.",
+        });
         queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+        queryClient.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
       }
     });
   };
@@ -90,6 +84,11 @@ function JobCard({ job, role }: { job: Job; role: string }) {
           <Badge variant="secondary" className={`border-0 font-bold ${getStatusColor(job.status)}`}>
             {formatStatus(job.status)}
           </Badge>
+          {job.occurrenceTotal > 1 && (
+            <Badge variant="secondary" className="border-0 bg-primary/10 text-primary font-bold">
+              Run {job.occurrenceNumber} of {job.occurrenceTotal}
+            </Badge>
+          )}
           {job.estimatedMinutes && (
             <div className="flex items-center text-xs font-bold text-muted-foreground bg-muted/50 px-2 py-1.5 rounded-md">
               <Clock className="w-3.5 h-3.5 mr-1.5 opacity-70" />
@@ -124,11 +123,11 @@ function JobCard({ job, role }: { job: Job; role: string }) {
             {job.status === "in_progress" && (
               <Button 
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-10 shadow-sm rounded-xl active:scale-95 transition-all" 
-                onClick={handleSubmit} 
-                disabled={submitJob.isPending}
+                onClick={handleComplete} 
+                disabled={completeJob.isPending}
               >
-                {submitJob.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-                Submit for Review
+                {completeJob.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                Complete & Send for Check-off
               </Button>
             )}
           </>
@@ -144,12 +143,6 @@ function JobCard({ job, role }: { job: Job; role: string }) {
             {(job.status === "to_do" || job.status === "claimed" || job.status === "changes_requested") && (
               <Button variant="ghost" size="icon" className="ml-auto text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl h-10 w-10 shrink-0" onClick={handleDelete} disabled={deleteJob.isPending}>
                 {deleteJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-              </Button>
-            )}
-            {job.status === "in_progress" && (
-              <Button variant="outline" className="w-full font-bold h-10 rounded-xl" onClick={handleComplete} disabled={completeJob.isPending}>
-                {completeJob.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2 text-accent" />}
-                Mark Complete
               </Button>
             )}
           </>

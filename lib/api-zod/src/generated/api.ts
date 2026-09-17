@@ -248,6 +248,10 @@ export const getDashboardResponseRecentJobsItemPointsMax = 100;
 
 export const getDashboardResponseRecentJobsItemEstimatedMinutesMax = 1440;
 
+export const getDashboardResponseRecentJobsItemOccurrenceNumberMax = 2;
+
+export const getDashboardResponseRecentJobsItemOccurrenceTotalMax = 2;
+
 
 
 export const GetDashboardResponse = zod.object({
@@ -284,7 +288,10 @@ export const GetDashboardResponse = zod.object({
   "estimatedMinutes": zod.number().int().min(1).max(getDashboardResponseRecentJobsItemEstimatedMinutesMax).nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "completedAt": zod.coerce.date().nullable()
+  "completedAt": zod.coerce.date().nullable(),
+  "repeatGroupId": zod.string().nullable(),
+  "occurrenceNumber": zod.number().int().min(1).max(getDashboardResponseRecentJobsItemOccurrenceNumberMax),
+  "occurrenceTotal": zod.number().int().min(1).max(getDashboardResponseRecentJobsItemOccurrenceTotalMax)
 }))
 })
 
@@ -301,6 +308,10 @@ export const ListJobsQueryParams = zod.object({
 export const listJobsResponsePointsMax = 100;
 
 export const listJobsResponseEstimatedMinutesMax = 1440;
+
+export const listJobsResponseOccurrenceNumberMax = 2;
+
+export const listJobsResponseOccurrenceTotalMax = 2;
 
 
 
@@ -320,7 +331,10 @@ export const ListJobsResponseItem = zod.object({
   "estimatedMinutes": zod.number().int().min(1).max(listJobsResponseEstimatedMinutesMax).nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "completedAt": zod.coerce.date().nullable()
+  "completedAt": zod.coerce.date().nullable(),
+  "repeatGroupId": zod.string().nullable(),
+  "occurrenceNumber": zod.number().int().min(1).max(listJobsResponseOccurrenceNumberMax),
+  "occurrenceTotal": zod.number().int().min(1).max(listJobsResponseOccurrenceTotalMax)
 })
 export const ListJobsResponse = zod.array(ListJobsResponseItem)
 
@@ -336,6 +350,9 @@ export const createJobBodyPointsMax = 100;
 
 export const createJobBodyEstimatedMinutesMax = 1440;
 
+export const createJobBodyDailyRunsDefault = 1;
+export const createJobBodyDailyRunsMax = 2;
+
 
 
 export const CreateJobBody = zod.object({
@@ -345,12 +362,17 @@ export const CreateJobBody = zod.object({
   "type": zod.enum(['assigned', 'board']),
   "assignedChildId": zod.string().nullish(),
   "dueDate": zod.coerce.date().nullish(),
-  "estimatedMinutes": zod.number().int().min(1).max(createJobBodyEstimatedMinutesMax).nullish()
+  "estimatedMinutes": zod.number().int().min(1).max(createJobBodyEstimatedMinutesMax).nullish(),
+  "dailyRuns": zod.number().int().min(1).max(createJobBodyDailyRunsMax).default(createJobBodyDailyRunsDefault).describe('Number of independently claimable instances to create for the day')
 })
 
 export const createJobResponsePointsMax = 100;
 
 export const createJobResponseEstimatedMinutesMax = 1440;
+
+export const createJobResponseOccurrenceNumberMax = 2;
+
+export const createJobResponseOccurrenceTotalMax = 2;
 
 
 
@@ -370,7 +392,10 @@ export const CreateJobResponse = zod.object({
   "estimatedMinutes": zod.number().int().min(1).max(createJobResponseEstimatedMinutesMax).nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "completedAt": zod.coerce.date().nullable()
+  "completedAt": zod.coerce.date().nullable(),
+  "repeatGroupId": zod.string().nullable(),
+  "occurrenceNumber": zod.number().int().min(1).max(createJobResponseOccurrenceNumberMax),
+  "occurrenceTotal": zod.number().int().min(1).max(createJobResponseOccurrenceTotalMax)
 })
 
 
@@ -404,6 +429,10 @@ export const updateJobResponsePointsMax = 100;
 
 export const updateJobResponseEstimatedMinutesMax = 1440;
 
+export const updateJobResponseOccurrenceNumberMax = 2;
+
+export const updateJobResponseOccurrenceTotalMax = 2;
+
 
 
 export const UpdateJobResponse = zod.object({
@@ -422,7 +451,10 @@ export const UpdateJobResponse = zod.object({
   "estimatedMinutes": zod.number().int().min(1).max(updateJobResponseEstimatedMinutesMax).nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "completedAt": zod.coerce.date().nullable()
+  "completedAt": zod.coerce.date().nullable(),
+  "repeatGroupId": zod.string().nullable(),
+  "occurrenceNumber": zod.number().int().min(1).max(updateJobResponseOccurrenceNumberMax),
+  "occurrenceTotal": zod.number().int().min(1).max(updateJobResponseOccurrenceTotalMax)
 })
 
 
@@ -447,6 +479,10 @@ export const claimJobResponsePointsMax = 100;
 
 export const claimJobResponseEstimatedMinutesMax = 1440;
 
+export const claimJobResponseOccurrenceNumberMax = 2;
+
+export const claimJobResponseOccurrenceTotalMax = 2;
+
 
 
 export const ClaimJobResponse = zod.object({
@@ -465,7 +501,10 @@ export const ClaimJobResponse = zod.object({
   "estimatedMinutes": zod.number().int().min(1).max(claimJobResponseEstimatedMinutesMax).nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "completedAt": zod.coerce.date().nullable()
+  "completedAt": zod.coerce.date().nullable(),
+  "repeatGroupId": zod.string().nullable(),
+  "occurrenceNumber": zod.number().int().min(1).max(claimJobResponseOccurrenceNumberMax),
+  "occurrenceTotal": zod.number().int().min(1).max(claimJobResponseOccurrenceTotalMax)
 })
 
 
@@ -479,6 +518,10 @@ export const StartJobParams = zod.object({
 export const startJobResponsePointsMax = 100;
 
 export const startJobResponseEstimatedMinutesMax = 1440;
+
+export const startJobResponseOccurrenceNumberMax = 2;
+
+export const startJobResponseOccurrenceTotalMax = 2;
 
 
 
@@ -498,7 +541,10 @@ export const StartJobResponse = zod.object({
   "estimatedMinutes": zod.number().int().min(1).max(startJobResponseEstimatedMinutesMax).nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "completedAt": zod.coerce.date().nullable()
+  "completedAt": zod.coerce.date().nullable(),
+  "repeatGroupId": zod.string().nullable(),
+  "occurrenceNumber": zod.number().int().min(1).max(startJobResponseOccurrenceNumberMax),
+  "occurrenceTotal": zod.number().int().min(1).max(startJobResponseOccurrenceTotalMax)
 })
 
 
@@ -512,6 +558,10 @@ export const CompleteJobParams = zod.object({
 export const completeJobResponsePointsMax = 100;
 
 export const completeJobResponseEstimatedMinutesMax = 1440;
+
+export const completeJobResponseOccurrenceNumberMax = 2;
+
+export const completeJobResponseOccurrenceTotalMax = 2;
 
 
 
@@ -531,7 +581,10 @@ export const CompleteJobResponse = zod.object({
   "estimatedMinutes": zod.number().int().min(1).max(completeJobResponseEstimatedMinutesMax).nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "completedAt": zod.coerce.date().nullable()
+  "completedAt": zod.coerce.date().nullable(),
+  "repeatGroupId": zod.string().nullable(),
+  "occurrenceNumber": zod.number().int().min(1).max(completeJobResponseOccurrenceNumberMax),
+  "occurrenceTotal": zod.number().int().min(1).max(completeJobResponseOccurrenceTotalMax)
 })
 
 
@@ -596,6 +649,10 @@ export const reviewJobResponsePointsMax = 100;
 
 export const reviewJobResponseEstimatedMinutesMax = 1440;
 
+export const reviewJobResponseOccurrenceNumberMax = 2;
+
+export const reviewJobResponseOccurrenceTotalMax = 2;
+
 
 
 export const ReviewJobResponse = zod.object({
@@ -614,7 +671,10 @@ export const ReviewJobResponse = zod.object({
   "estimatedMinutes": zod.number().int().min(1).max(reviewJobResponseEstimatedMinutesMax).nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
-  "completedAt": zod.coerce.date().nullable()
+  "completedAt": zod.coerce.date().nullable(),
+  "repeatGroupId": zod.string().nullable(),
+  "occurrenceNumber": zod.number().int().min(1).max(reviewJobResponseOccurrenceNumberMax),
+  "occurrenceTotal": zod.number().int().min(1).max(reviewJobResponseOccurrenceTotalMax)
 })
 
 

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { playClaimSound } from "@/lib/sound-effects";
 
 function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
   const [open, setOpen] = useState(false);
@@ -24,6 +25,7 @@ function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
   const [type, setType] = useState<"assigned" | "board">("board");
   const [assignedChildId, setAssignedChildId] = useState<string>("none");
   const [estimatedMinutes, setEstimatedMinutes] = useState("");
+  const [dailyRuns, setDailyRuns] = useState<"1" | "2">("1");
 
   const handleSubmit = () => {
     if (!title) {
@@ -39,10 +41,17 @@ function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
         type,
         assignedChildId: type === "assigned" && assignedChildId !== "none" ? assignedChildId : undefined,
         estimatedMinutes: estimatedMinutes ? parseInt(estimatedMinutes, 10) : undefined,
+        dailyRuns: parseInt(dailyRuns, 10),
       }
     }, {
       onSuccess: () => {
-        toast({ title: "Job created!" });
+        toast({
+          title: dailyRuns === "2" ? "Two daily runs created!" : "Job created!",
+          description:
+            dailyRuns === "2"
+              ? "Each run can be claimed and checked off separately."
+              : undefined,
+        });
         setOpen(false);
         queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
         // reset
@@ -52,6 +61,7 @@ function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
         setType("board");
         setAssignedChildId("none");
         setEstimatedMinutes("");
+        setDailyRuns("1");
       }
     });
   };
@@ -85,6 +95,23 @@ function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
               <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Est. Minutes</Label>
               <Input className="h-11 rounded-xl bg-muted/50 border-border font-bold" type="number" min="1" value={estimatedMinutes} onChange={e => setEstimatedMinutes(e.target.value)} placeholder="15" />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Times Today</Label>
+            <Select value={dailyRuns} onValueChange={(value: "1" | "2") => setDailyRuns(value)}>
+              <SelectTrigger className="h-11 rounded-xl bg-muted/50 border-border font-semibold">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="1" className="font-medium rounded-lg">Once today</SelectItem>
+                <SelectItem value="2" className="font-medium rounded-lg">Twice today — separate people can claim</SelectItem>
+              </SelectContent>
+            </Select>
+            {dailyRuns === "2" && type === "assigned" && (
+              <p className="text-xs text-muted-foreground">
+                Assigned jobs create two runs for the same teen. Use the Shared Board if different people should claim them.
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Job Type</Label>
@@ -135,6 +162,7 @@ function BoardJobCard({ job, role }: { job: Job; role: string }) {
   const handleClaim = () => {
     claimJob.mutate({ jobId: job.id }, {
       onSuccess: () => {
+        playClaimSound();
         toast({ title: "Job claimed!", description: "It's now on your Today list." });
         queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
       },
@@ -172,6 +200,11 @@ function BoardJobCard({ job, role }: { job: Job; role: string }) {
       </CardHeader>
       <CardContent className="pb-4 pl-6 pr-5">
         <div className="flex items-center text-xs font-bold text-muted-foreground gap-3">
+          {job.occurrenceTotal > 1 && (
+            <Badge variant="secondary" className="border-0 bg-primary/10 text-primary font-bold">
+              Run {job.occurrenceNumber} of {job.occurrenceTotal}
+            </Badge>
+          )}
           {job.estimatedMinutes && (
             <div className="flex items-center bg-muted/50 px-2.5 py-1.5 rounded-md">
               <Clock className="w-3.5 h-3.5 mr-1.5 opacity-70" /> {job.estimatedMinutes}m

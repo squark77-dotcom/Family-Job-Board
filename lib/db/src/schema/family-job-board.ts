@@ -64,6 +64,9 @@ export const jobsTable = pgTable(
     dueDate: timestamp("due_date", { withTimezone: true }),
     estimatedMinutes: integer("estimated_minutes"),
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    repeatGroupId: uuid("repeat_group_id"),
+    occurrenceNumber: integer("occurrence_number").notNull().default(1),
+    occurrenceTotal: integer("occurrence_total").notNull().default(1),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
@@ -73,6 +76,10 @@ export const jobsTable = pgTable(
   (table) => [
     index("jobs_family_idx").on(table.familyId),
     index("jobs_status_idx").on(table.status),
+    uniqueIndex("jobs_repeat_claimant_unique").on(
+      table.repeatGroupId,
+      table.claimedByChildId,
+    ),
   ],
 );
 

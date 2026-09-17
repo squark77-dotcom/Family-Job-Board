@@ -41,4 +41,16 @@ export interface Job {
   updatedAt: Date;
   /** @nullable */
   completedAt: Date | null;
+  /** @nullable */
+  repeatGroupId: string | null;
+  /**
+     * @minimum 1
+     * @maximum 2
+     */
+  occurrenceNumber: number;
+  /**
+     * @minimum 1
+     * @maximum 2
+     */
+  occurrenceTotal: number;
 }

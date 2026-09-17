@@ -611,8 +611,11 @@ components:
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
         completedAt: { type: ["string", "null"], format: date-time }
+        repeatGroupId: { type: ["string", "null"] }
+        occurrenceNumber: { type: integer, minimum: 1, maximum: 2 }
+        occurrenceTotal: { type: integer, minimum: 1, maximum: 2 }
       required:
-        [id, familyId, title, description, points, type, assignedChildId, assignedChildName, claimedByChildId, claimedByChildName, status, dueDate, estimatedMinutes, createdAt, updatedAt, completedAt]
+        [id, familyId, title, description, points, type, assignedChildId, assignedChildName, claimedByChildId, claimedByChildName, status, dueDate, estimatedMinutes, createdAt, updatedAt, completedAt, repeatGroupId, occurrenceNumber, occurrenceTotal]
     JobInput:
       type: object
       properties:
@@ -623,6 +626,12 @@ components:
         assignedChildId: { type: ["string", "null"] }
         dueDate: { type: ["string", "null"], format: date-time }
         estimatedMinutes: { type: ["integer", "null"], minimum: 1, maximum: 1440 }
+        dailyRuns:
+          type: integer
+          minimum: 1
+          maximum: 2
+          default: 1
+          description: Number of independently claimable instances to create for the day
       required: [title, points, type]
     JobUpdate:
       type: object

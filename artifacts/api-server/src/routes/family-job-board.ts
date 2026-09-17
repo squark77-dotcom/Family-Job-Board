@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { getAuth } from "@clerk/express";
 import {
   AwardBonusBody,
@@ -188,6 +188,9 @@ async function mapJobs(rows: JobRecord[]) {
     createdAt: job.createdAt.toISOString(),
     updatedAt: job.updatedAt.toISOString(),
     completedAt: iso(job.completedAt),
+    repeatGroupId: job.repeatGroupId,
+    occurrenceNumber: job.occurrenceNumber,
+    occurrenceTotal: job.occurrenceTotal,
   }));
 }
 
@@ -492,26 +495,43 @@ router.post("/jobs", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Assigned jobs need a child" });
     return;
   }
-  const [job] = await db
-    .insert(jobsTable)
-    .values({
-      ...body.data,
-      familyId: context.user.familyId,
-      createdByUserId: context.user.id,
-      assignedChildId:
-        body.data.type === "assigned" ? body.data.assignedChildId : null,
-      description: body.data.description ?? null,
-      dueDate: body.data.dueDate ? new Date(body.data.dueDate) : null,
-      estimatedMinutes: body.data.estimatedMinutes ?? null,
-    })
-    .returning();
-  await db.insert(jobEventsTable).values({
-    jobId: job.id,
-    actorUserId: context.user.id,
-    eventType: "created",
-    toStatus: job.status,
+  const dailyRuns = body.data.dailyRuns ?? 1;
+  const repeatGroupId = dailyRuns > 1 ? randomUUID() : null;
+  const { dailyRuns: _dailyRuns, ...jobInput } = body.data;
+  const jobs = await db.transaction(async (tx) => {
+    const created = await tx
+      .insert(jobsTable)
+      .values(
+        Array.from({ length: dailyRuns }, (_, index) => ({
+          ...jobInput,
+          familyId: context.user.familyId,
+          createdByUserId: context.user.id,
+          assignedChildId:
+            body.data.type === "assigned" ? body.data.assignedChildId : null,
+          description: body.data.description ?? null,
+          dueDate: body.data.dueDate ? new Date(body.data.dueDate) : null,
+          estimatedMinutes: body.data.estimatedMinutes ?? null,
+          repeatGroupId,
+          occurrenceNumber: index + 1,
+          occurrenceTotal: dailyRuns,
+        })),
+      )
+      .returning();
+    await tx.insert(jobEventsTable).values(
+      created.map((job) => ({
+        jobId: job.id,
+        actorUserId: context.user.id,
+        eventType: "created",
+        toStatus: job.status,
+        note:
+          dailyRuns > 1
+            ? `Daily run ${job.occurrenceNumber} of ${dailyRuns}`
+            : null,
+      })),
+    );
+    return created;
   });
-  res.status(201).json(CreateJobResponse.parse(await mapJob(job)));
+  res.status(201).json(CreateJobResponse.parse(await mapJob(jobs[0])));
 });
 
 router.patch("/jobs/:jobId", async (req, res): Promise<void> => {
@@ -594,19 +614,35 @@ router.post("/jobs/:jobId/claim", async (req, res): Promise<void> => {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const [job] = await db
-    .update(jobsTable)
-    .set({ claimedByChildId: context.child.id, status: "claimed" })
-    .where(
-      and(
-        eq(jobsTable.id, params.data.jobId),
-        eq(jobsTable.familyId, context.user.familyId),
-        eq(jobsTable.type, "board"),
-        eq(jobsTable.status, "to_do"),
-        isNull(jobsTable.claimedByChildId),
-      ),
-    )
-    .returning();
+  let job: JobRecord | undefined;
+  try {
+    [job] = await db
+      .update(jobsTable)
+      .set({ claimedByChildId: context.child.id, status: "claimed" })
+      .where(
+        and(
+          eq(jobsTable.id, params.data.jobId),
+          eq(jobsTable.familyId, context.user.familyId),
+          eq(jobsTable.type, "board"),
+          eq(jobsTable.status, "to_do"),
+          isNull(jobsTable.claimedByChildId),
+        ),
+      )
+      .returning();
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "23505"
+    ) {
+      res.status(409).json({
+        error: "Another family member needs to claim the other daily run",
+      });
+      return;
+    }
+    throw error;
+  }
   if (!job) {
     res.status(409).json({ error: "This job has already been claimed" });
     return;
@@ -677,18 +713,35 @@ router.post("/jobs/:jobId/complete", async (req, res): Promise<void> => {
     res.status(403).json({ error: "Start this job before signing it off" });
     return;
   }
-  const [job] = await db
-    .update(jobsTable)
-    .set({ completedAt: new Date() })
-    .where(eq(jobsTable.id, current.id))
-    .returning();
-  await db.insert(jobEventsTable).values({
-    jobId: job.id,
-    actorUserId: context.user.id,
-    eventType: "signed_off",
-    fromStatus: "in_progress",
-    toStatus: "in_progress",
+  const job = await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(jobsTable)
+      .set({ completedAt: new Date(), status: "ready_for_review" })
+      .where(
+        and(
+          eq(jobsTable.id, current.id),
+          eq(jobsTable.status, "in_progress"),
+        ),
+      )
+      .returning();
+    if (!updated) return null;
+    await tx
+      .insert(submissionsTable)
+      .values({ jobId: updated.id, childId: context.child!.id });
+    await tx.insert(jobEventsTable).values({
+      jobId: updated.id,
+      actorUserId: context.user.id,
+      eventType: "submitted",
+      fromStatus: "in_progress",
+      toStatus: "ready_for_review",
+      note: "Completed and sent to parent for check-off",
+    });
+    return updated;
   });
+  if (!job) {
+    res.status(409).json({ error: "This job was already completed" });
+    return;
+  }
   res.json(CompleteJobResponse.parse(await mapJob(job)));
 });
 
@@ -700,7 +753,7 @@ router.post("/jobs/:jobId/submit", async (req, res): Promise<void> => {
     return;
   }
   const current = await ownedJob(context, params.data.jobId);
-  if (!current?.completedAt) {
+  if (!current?.completedAt || current.status !== "in_progress") {
     res.status(403).json({ error: "Sign off the completed job first" });
     return;
   }

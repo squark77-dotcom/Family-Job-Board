@@ -34,4 +34,10 @@ export interface JobInput {
      * @nullable
      */
   estimatedMinutes?: number | null;
+  /**
+     * Number of independently claimable instances to create for the day
+     * @minimum 1
+     * @maximum 2
+     */
+  dailyRuns?: number;
 }
