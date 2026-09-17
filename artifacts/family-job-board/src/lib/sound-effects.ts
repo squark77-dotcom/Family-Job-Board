@@ -49,3 +49,12 @@ export function playCompletionSound() {
     { frequency: 1046.5, start: 0.34, duration: 0.3 },
   ]);
 }
+
+export function playNotCompleteSound() {
+  playNotes([
+    { frequency: 392, start: 0, duration: 0.28 },
+    { frequency: 349.23, start: 0.24, duration: 0.3 },
+    { frequency: 293.66, start: 0.5, duration: 0.34 },
+    { frequency: 246.94, start: 0.8, duration: 0.5 },
+  ]);
+}

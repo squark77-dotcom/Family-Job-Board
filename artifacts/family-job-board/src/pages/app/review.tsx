@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { playNotCompleteSound } from "@/lib/sound-effects";
 
 function ReviewCard({ submission }: { submission: JobSubmission }) {
   const { toast } = useToast();
@@ -26,8 +27,17 @@ function ReviewCard({ submission }: { submission: JobSubmission }) {
       data: { action, reason: reason || undefined }
     }, {
       onSuccess: () => {
-        toast({ title: `Submission ${action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'returned'}` });
+        if (action === "request_changes") {
+          playNotCompleteSound();
+          toast({
+            title: "Not complete yet",
+            description: `Returned to ${submission.childName} with their claim kept.`,
+          });
+        } else {
+          toast({ title: `Submission ${action === "approve" ? "approved" : "rejected"}` });
+        }
         setOpen(false);
+        setReason("");
         queryClient.invalidateQueries({ queryKey: getListReviewsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetPointsQueryKey() });
@@ -74,12 +84,12 @@ function ReviewCard({ submission }: { submission: JobSubmission }) {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" className="flex-1 font-bold h-11 rounded-xl active:scale-95 transition-all" onClick={() => setActionType("request_changes")}>
-              Request Changes
+              Not Complete Yet
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] rounded-[1.5rem] p-6 border-border shadow-xl">
             <DialogHeader className="mb-4">
-              <DialogTitle className="font-display text-2xl font-bold tracking-tight">Request Changes</DialogTitle>
+              <DialogTitle className="font-display text-2xl font-bold tracking-tight">Not Complete Yet</DialogTitle>
             </DialogHeader>
             <div className="py-2 space-y-3">
               <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Feedback for {submission.childName}</Label>
@@ -98,7 +108,7 @@ function ReviewCard({ submission }: { submission: JobSubmission }) {
                 disabled={reviewJob.isPending || !reason.trim()}
               >
                 {reviewJob.isPending && actionType === "request_changes" ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                Send Back
+                Return to {submission.childName}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -117,6 +127,7 @@ export default function Review() {
   }
 
   const { data: reviews, isLoading } = useListReviews({ query: { enabled: role === "parent", queryKey: getListReviewsQueryKey() } });
+  const pendingReviews = reviews?.filter((submission) => submission.status === "ready_for_review");
 
   return (
     <div className="p-4 lg:p-8 space-y-8 animate-in fade-in duration-500">
@@ -129,9 +140,9 @@ export default function Review() {
 
       {isLoading ? (
         <div className="flex justify-center p-8 mt-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-      ) : reviews && reviews.length > 0 ? (
+      ) : pendingReviews && pendingReviews.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          {reviews.map(sub => (
+          {pendingReviews.map(sub => (
             <ReviewCard key={sub.id} submission={sub} />
           ))}
         </div>
