@@ -89,9 +89,11 @@ export function Button({
         {
           backgroundColor: variantStyles.bg,
           borderColor: variantStyles.border,
-          borderWidth: variant === "outline" ? 1 : 0,
+          borderWidth: variant === "outline" ? 2 : 0,
           borderRadius: colors.radius,
           opacity: state.pressed || disabled ? 0.7 : 1,
+          transform: [{ scale: state.pressed ? 0.96 : 1 }],
+          shadowColor: colors.foreground,
         },
         size === "sm" && styles.sm,
         size === "md" && styles.md,
@@ -128,6 +130,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 5,
+    elevation: 3,
   },
   content: {
     flexDirection: "row",
@@ -139,7 +145,7 @@ const styles = StyleSheet.create({
   md: { paddingHorizontal: 16, paddingVertical: 12, minHeight: 48 },
   lg: { paddingHorizontal: 24, paddingVertical: 16, minHeight: 56 },
   text: {
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Inter_700Bold",
     fontSize: 16,
   },
   textSm: { fontSize: 14 },
