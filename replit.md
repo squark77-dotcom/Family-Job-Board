@@ -46,7 +46,7 @@ Choremate is a family contribution app where parents create and review household
 - Confirmation and completion sounds, with completion sent directly to the parent review queue
 - Parent approval, change requests, rejection, and initiative bonuses
 - Assigned, voluntary, and bonus contribution tracking
-- Responsive Today, Board, Review, Contributions, and Family navigation
+- Responsive Daily, Board, Review, Contributions, and Family navigation
 
 ## User preferences
 

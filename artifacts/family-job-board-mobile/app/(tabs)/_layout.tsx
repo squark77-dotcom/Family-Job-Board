@@ -13,8 +13,8 @@ function NativeTabLayout({ isParent }: { isParent: boolean }) {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Icon sf={{ default: 'calendar', selected: 'calendar' }} />
-        <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'checklist', selected: 'checklist' }} />
+        <NativeTabs.Trigger.Label>Daily</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       
       <NativeTabs.Trigger name="board">
@@ -83,12 +83,12 @@ function ClassicTabLayout({ isParent }: { isParent: boolean }) {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Today',
+          title: 'Daily',
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="calendar" tintColor={color} size={24} />
+              <SymbolView name="checklist" tintColor={color} size={24} />
             ) : (
-              <Feather name="calendar" size={22} color={color} />
+              <Feather name="check-square" size={22} color={color} />
             ),
         }}
       />
