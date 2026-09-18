@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/family-job-board-mobile/"
+title = "Choremate Mobile"
+description = "A native iOS companion for families to claim jobs, complete work, review submissions, and earn points."
+version = "1.0.0"
+id = "artifacts/family-job-board-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/family-job-board-mobile/" ]
+localPort = 21345
+
+[services.development]
+run = "pnpm --filter @workspace/family-job-board-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/family-job-board-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/family-job-board-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "21345"
+BASE_PATH = "/family-job-board-mobile/"

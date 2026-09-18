@@ -3,7 +3,7 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: Family Job Board API
+  description: Choremate API
 servers:
   - url: /api
     description: Base API path
@@ -523,12 +523,13 @@ components:
       type: object
       properties:
         id: { type: string }
+        childId: { type: ["string", "null"] }
         name: { type: string }
         role: { $ref: "#/components/schemas/Role" }
         familyId: { type: ["string", "null"] }
         avatar: { type: ["string", "null"] }
         active: { type: boolean }
-      required: [id, name, role, familyId, avatar, active]
+      required: [id, childId, name, role, familyId, avatar, active]
     Child:
       type: object
       properties:

@@ -130,7 +130,7 @@ function AuthGuard({ children }: { children: ReactNode }) {
   });
   
   if (isLoading) {
-    return <FullScreenLoader message="Waking up the family board..." />;
+    return <FullScreenLoader message="Waking up Choremate..." />;
   }
 
   // If user profile is not fully setup or has no family, redirect to setup
@@ -222,7 +222,7 @@ function ClerkProviderWithRoutes() {
         },
         signUp: {
           start: {
-            title: "Join the Family Board",
+            title: "Join Choremate",
             subtitle: "Create your parent or child account",
           },
         },

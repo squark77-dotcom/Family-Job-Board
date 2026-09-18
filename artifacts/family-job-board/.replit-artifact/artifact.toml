@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Family Job Board"
+title = "Choremate"
 description = "A friendly family contribution app where parents create and review jobs, children claim work, and approved contributions earn points."
 version = "1.0.0"
 id = "artifacts/family-job-board"

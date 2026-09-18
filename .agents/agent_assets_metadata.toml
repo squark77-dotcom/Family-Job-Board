@@ -1,0 +1,10 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "ILbjGwiQ2veF5E0fxhXa5"
+uri = "file://attached_assets/generated_audio/not-complete-yet.mp3"
+type = "audio"
+title = "not complete yet tone"
+description = "Generated sound effect: A short playful but mature descending electronic UI tone that clearly signals try again, friendly and non-punitive, crisp modern mobile app sound"
+logical_id = "a409ce3d-2a03-44dd-9e63-af75ade3dce0"

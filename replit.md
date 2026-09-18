@@ -1,6 +1,6 @@
-# Family Job Board
+# Choremate
 
-A family contribution app where parents create and review household jobs, children claim and submit work, and approved contributions earn points.
+Choremate is a family contribution app where parents create and review household jobs, children claim and submit work, and approved contributions earn points.
 
 ## Run & Operate
 
@@ -22,7 +22,8 @@ A family contribution app where parents create and review household jobs, childr
 
 ## Where things live
 
-- `artifacts/family-job-board` — responsive React web app and Clerk auth screens
+- `artifacts/family-job-board` — Choremate responsive React web app and Clerk auth screens
+- `artifacts/family-job-board-mobile` — Choremate native Expo/React Native iOS client with custom Clerk auth and bearer-token API transport
 - `artifacts/api-server/src/routes/family-job-board.ts` — role-aware family, job, review, and points API
 - `lib/api-spec/openapi.yaml` — source of truth for API contracts
 - `lib/db/src/schema/family-job-board.ts` — PostgreSQL schema
@@ -55,7 +56,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 - Run API code generation after every OpenAPI change.
 - Clerk browser API calls use session cookies; do not add bearer-token handling to the web app.
-- Native Expo clients will need bearer-token transport and must be built from replit.com rather than the iOS Replit app.
+- The Expo client supplies Clerk bearer tokens through `@workspace/api-client-react`; preserve the web app's existing cookie-session behavior.
+- Build and publish the native client from replit.com rather than the iOS Replit app.
+- `EXPO_PUBLIC_DOMAIN` is workflow-injected for the native API base URL; never hardcode a development or production hostname.
 
 ## Pointers
 

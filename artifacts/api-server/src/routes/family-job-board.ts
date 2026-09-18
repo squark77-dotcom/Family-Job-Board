@@ -211,6 +211,7 @@ router.get("/me", async (req, res): Promise<void> => {
     GetCurrentUserResponse.parse({
       user: {
         id: context.user.id,
+        childId: context.child?.id ?? null,
         name: context.child?.name ?? context.user.name,
         role: context.user.role,
         familyId: context.user.familyId,
@@ -346,6 +347,7 @@ router.post("/family/join", async (req, res): Promise<void> => {
     JoinFamilyResponse.parse({
       user: {
         id: context.user.id,
+        childId: linked.id,
         name: linked.name,
         role: "child",
         familyId: family.id,
