@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useGetCurrentUser, useCreateFamily, useJoinFamily } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, UserPlus, Home, KeyRound, ArrowRight } from "lucide-react";
+import { Loader2, UserPlus, Home, KeyRound, ArrowRight, UserRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FullScreenLoader } from "@/components/ui/full-screen-loader";
 
@@ -15,6 +15,7 @@ export default function Setup() {
   const { data: profile, isLoading: isProfileLoading, refetch } = useGetCurrentUser();
   const createFamily = useCreateFamily();
   const joinFamily = useJoinFamily();
+  const [mode, setMode] = useState<"choose" | "create" | "join">("choose");
 
   // Parent State
   const [familyName, setFamilyName] = useState("");
@@ -26,12 +27,11 @@ export default function Setup() {
 
   if (isProfileLoading) return <FullScreenLoader />;
 
-  if (profile?.family) {
-    setLocation("/app/today");
-    return null;
-  }
+  useEffect(() => {
+    if (profile?.family) setLocation("/app/today");
+  }, [profile?.family, setLocation]);
 
-  const role = profile?.user?.role;
+  if (profile?.family) return null;
 
   const handleAddChild = () => {
     if (children.length < 3) {
@@ -101,7 +101,42 @@ export default function Setup() {
           <p className="text-muted-foreground font-medium mt-2">Let's get your workspace set up.</p>
         </div>
 
-        {role === "parent" ? (
+        {mode === "choose" ? (
+          <Card className="shadow-xl shadow-primary/5 border-border rounded-[1.5rem] overflow-hidden">
+            <CardHeader className="bg-muted/30 pb-6 border-b border-border/50">
+              <CardTitle className="text-xl">How are you joining?</CardTitle>
+              <CardDescription className="text-sm">
+                Choose the path that matches you. You can change a parent-default account into a child account by joining with your family details.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 pt-6">
+              <Button
+                variant="outline"
+                className="h-auto justify-start gap-3 rounded-xl p-4 text-left"
+                onClick={() => setMode("create")}
+              >
+                <Home className="h-5 w-5 shrink-0 text-primary" />
+                <span>
+                  <span className="block font-bold">I’m a parent</span>
+                  <span className="block text-sm font-normal text-muted-foreground">Create a new family and add child profiles.</span>
+                </span>
+                <ArrowRight className="ml-auto h-4 w-4 shrink-0" />
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto justify-start gap-3 rounded-xl p-4 text-left"
+                onClick={() => setMode("join")}
+              >
+                <UserRound className="h-5 w-5 shrink-0 text-accent" />
+                <span>
+                  <span className="block font-bold">I’m joining as a child</span>
+                  <span className="block text-sm font-normal text-muted-foreground">Enter your family join code and child profile ID.</span>
+                </span>
+                <ArrowRight className="ml-auto h-4 w-4 shrink-0" />
+              </Button>
+            </CardContent>
+          </Card>
+        ) : mode === "create" ? (
           <Card className="shadow-xl shadow-primary/5 border-border rounded-[1.5rem] overflow-hidden">
             <CardHeader className="bg-muted/30 pb-6 border-b border-border/50">
               <CardTitle className="flex items-center gap-2 text-xl">
@@ -161,9 +196,9 @@ export default function Setup() {
             <CardHeader className="bg-muted/30 pb-6 border-b border-border/50">
               <CardTitle className="flex items-center gap-2 text-xl">
                 <KeyRound className="w-5 h-5 text-accent" />
-                Join the Board
+                Join as a child
               </CardTitle>
-              <CardDescription className="text-sm">Get your join code and profile ID from your parent.</CardDescription>
+              <CardDescription className="text-sm">Use the join code and unlinked child profile ID from your parent. This also corrects accounts that were accidentally created with the parent default.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               <div className="space-y-2">

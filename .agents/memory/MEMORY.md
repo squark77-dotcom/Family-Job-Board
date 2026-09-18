@@ -1,0 +1,1 @@
+- [Neutral onboarding role choice](onboarding-role-default.md) — treat no-family accounts as unconfigured; require an explicit parent-create or child-join path.

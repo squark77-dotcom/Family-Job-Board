@@ -13,7 +13,7 @@ import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollV
 import { Image } from 'expo-image';
 
 export default function SetupScreen() {
-  const [mode, setMode] = useState<'create' | 'join'>('create');
+  const [mode, setMode] = useState<'choose' | 'create' | 'join'>('choose');
   const colors = useColors();
   const insets = useSafeAreaInsets();
   
@@ -50,7 +50,14 @@ export default function SetupScreen() {
         contentContainerStyle={styles.scrollContent}
         bottomOffset={20}
       >
-        {mode === 'create' ? <CreateFamilyForm /> : <JoinFamilyForm />}
+        {mode === 'choose' ? (
+          <Card style={styles.card}>
+            <Text style={[styles.cardTitle, { color: colors.foreground }]}>Choose your path</Text>
+            <Text style={[styles.helpText, { color: colors.mutedForeground }]}>
+              Pick one before setting up. Parents create a family; children join an existing family with a code.
+            </Text>
+          </Card>
+        ) : mode === 'create' ? <CreateFamilyForm /> : <JoinFamilyForm />}
       </KeyboardAwareScrollViewCompat>
     </View>
   );

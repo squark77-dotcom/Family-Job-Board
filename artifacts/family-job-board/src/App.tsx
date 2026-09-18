@@ -223,7 +223,7 @@ function ClerkProviderWithRoutes() {
         signUp: {
           start: {
             title: "Join Choremate",
-            subtitle: "Create your parent or child account",
+            subtitle: "After signup, create a family or join one with a code",
           },
         },
       }}
