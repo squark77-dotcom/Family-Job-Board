@@ -20,7 +20,6 @@ export function Card({ children, style, title, subtitle, headerRight, ...props }
           backgroundColor: colors.card,
           borderRadius: colors.radius,
           borderColor: colors.border,
-          shadowColor: colors.primary,
         },
         style,
       ]}
@@ -50,12 +49,13 @@ export function Card({ children, style, title, subtitle, headerRight, ...props }
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: 2,
+    borderWidth: 1,
     overflow: "hidden",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
     marginBottom: 16,
   },
   header: {

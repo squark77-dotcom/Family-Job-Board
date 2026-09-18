@@ -11,7 +11,6 @@ import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { getListJobsQueryKey, getGetDashboardQueryKey } from '@workspace/api-client-react';
 import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 
 export default function BoardScreen() {
   const colors = useColors();
@@ -21,7 +20,6 @@ export default function BoardScreen() {
   const claimJob = useClaimJob();
   const startJob = useStartJob();
   const router = useRouter();
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const isChild = userProfile?.user.role === 'child';
   const isParent = userProfile?.user.role === 'parent';
@@ -29,9 +27,6 @@ export default function BoardScreen() {
   const handleClaim = (jobId: string) => {
     claimJob.mutate({ jobId }, {
       onSuccess: () => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setSuccessMessage("It's yours! Time to crush it.");
-        setTimeout(() => setSuccessMessage(null), 2400);
         queryClient.invalidateQueries({ queryKey: getListJobsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
       }
@@ -41,9 +36,6 @@ export default function BoardScreen() {
   const handleStart = (jobId: string) => {
     startJob.mutate({ jobId }, {
       onSuccess: () => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setSuccessMessage("You're off! Let's get it done.");
-        setTimeout(() => setSuccessMessage(null), 2400);
         queryClient.invalidateQueries({ queryKey: getListJobsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
       }
@@ -73,12 +65,6 @@ export default function BoardScreen() {
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />
         }
       >
-        {successMessage && (
-          <View style={[styles.successBanner, { backgroundColor: colors.secondary }]}>
-            <Feather name="zap" size={20} color={colors.secondaryForeground} />
-            <Text style={[styles.successText, { color: colors.secondaryForeground }]}>{successMessage}</Text>
-          </View>
-        )}
         {!availableJobs.length && !isLoading && (
           <EmptyState
             icon={<Feather name="clipboard" size={32} color={colors.mutedForeground} />}
@@ -88,7 +74,7 @@ export default function BoardScreen() {
         )}
 
         {availableJobs.map((job) => (
-          <Card key={job.id} style={[styles.jobCard, { borderLeftColor: colors.accent }]}>
+          <Card key={job.id} style={styles.jobCard}>
             <View style={styles.jobHeader}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.jobTitle, { color: colors.foreground }]}>{job.title}</Text>
@@ -98,7 +84,7 @@ export default function BoardScreen() {
                   </Text>
                 ) : null}
               </View>
-              <View style={[styles.pointsBadge, { backgroundColor: colors.secondary }]}>
+              <View style={[styles.pointsBadge, { backgroundColor: `${colors.accent}15` }]}>
                 <Text style={[styles.pointsText, { color: colors.accent }]}>{job.points} pts</Text>
               </View>
             </View>
@@ -106,7 +92,7 @@ export default function BoardScreen() {
             <View style={styles.jobFooter}>
               <Badge 
                 label={job.type === 'board' ? 'Open to anyone' : 'Assigned'} 
-                   variant="accent"
+                variant="outline"
               />
               
               {isChild && job.type === 'board' && (
@@ -138,11 +124,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 20,
+    padding: 16,
   },
   jobCard: {
     marginBottom: 12,
-    borderLeftWidth: 7,
   },
   jobHeader: {
     flexDirection: 'row',
@@ -163,7 +148,7 @@ const styles = StyleSheet.create({
   pointsBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 999,
+    borderRadius: 8,
     marginLeft: 12,
   },
   pointsText: {
@@ -175,19 +160,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 8,
-  },
-  successBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 20,
-    marginBottom: 18,
-  },
-  successText: {
-    flex: 1,
-    fontFamily: 'Inter_700Bold',
-    fontSize: 15,
   },
 });

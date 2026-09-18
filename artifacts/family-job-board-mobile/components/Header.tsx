@@ -19,7 +19,7 @@ export function Header({ title, rightAction }: HeaderProps) {
         { 
           paddingTop: insets.top || (Platform.OS === 'web' ? 24 : 0),
           backgroundColor: colors.background,
-          borderBottomColor: colors.primary,
+          borderBottomColor: colors.border,
         }
       ]}
     >
@@ -33,19 +33,18 @@ export function Header({ title, rightAction }: HeaderProps) {
 
 const styles = StyleSheet.create({
   container: {
-    borderBottomWidth: 3,
+    borderBottomWidth: 1,
     zIndex: 10,
   },
   content: {
-    height: 64,
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   title: {
     fontFamily: 'Inter_700Bold',
-    fontSize: 28,
-    letterSpacing: -0.6,
+    fontSize: 24,
   }
 });

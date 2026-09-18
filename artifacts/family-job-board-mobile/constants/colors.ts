@@ -15,65 +15,65 @@
 const colors = {
   light: {
     // Legacy aliases (kept for backward compatibility)
-    text: '#17203A',
-    tint: '#635BFF',
+    text: '#17171a', // foreground
+    tint: '#3d4dfa', // primary
 
     // Core surfaces
-    background: '#FFF8E8',
-    foreground: '#17203A',
+    background: '#f9f9fa',
+    foreground: '#17171a',
 
     // Cards / elevated surfaces
     card: '#ffffff',
-    cardForeground: '#17203A',
+    cardForeground: '#17171a',
 
     // Primary action color (buttons, links, active states)
-    primary: '#635BFF',
+    primary: '#3d4dfa',
     primaryForeground: '#ffffff',
 
     // Secondary / less-emphasis interactive surfaces
-    secondary: '#FFE66D',
-    secondaryForeground: '#3D3200',
+    secondary: '#eeeff2',
+    secondaryForeground: '#17171a',
 
     // Muted / subdued elements (dividers, timestamps, placeholders)
-    muted: '#E8F7FF',
-    mutedForeground: '#59627A',
+    muted: '#eeeff2',
+    mutedForeground: '#5c5c66',
 
     // Accent highlights (badges, selected items, focus rings)
-    accent: '#FF4F9A',
+    accent: '#f21d96',
     accentForeground: '#ffffff',
 
     // Destructive actions (delete, error states)
-    destructive: '#FF5C5C',
+    destructive: '#ef4444',
     destructiveForeground: '#ffffff',
 
     // Borders and input outlines
-    border: '#D9D5FF',
-    input: '#C9C3FF',
+    border: '#e6e6e8',
+    input: '#e6e6e8',
   },
 
   // Dark mode mappings (adjusted for contrast where appropriate)
   dark: {
-    text: '#FFFFFF',
-    tint: '#8A83FF',
-    background: '#15162B',
-    foreground: '#FFFFFF',
-    card: '#232447',
-    cardForeground: '#FFFFFF',
-    primary: '#8A83FF',
+    text: '#ffffff',
+    tint: '#5b6cfb',
+    background: '#121214',
+    foreground: '#ffffff',
+    card: '#1c1c1f',
+    cardForeground: '#ffffff',
+    primary: '#5b6cfb',
     primaryForeground: '#ffffff',
-    secondary: '#FFE66D',
-    secondaryForeground: '#3D3200',
-    muted: '#30325F',
-    mutedForeground: '#C9CBE6',
-    accent: '#FF63A8',
+    secondary: '#27272a',
+    secondaryForeground: '#ffffff',
+    muted: '#27272a',
+    mutedForeground: '#a1a1aa',
+    accent: '#f21d96',
     accentForeground: '#ffffff',
-    destructive: '#FF6B6B',
+    destructive: '#ef4444',
     destructiveForeground: '#ffffff',
-    border: '#4A4D82',
-    input: '#55598F',
+    border: '#27272a',
+    input: '#27272a',
   },
 
-  radius: 22,
+  radius: 16,
 };
 
 export default colors;

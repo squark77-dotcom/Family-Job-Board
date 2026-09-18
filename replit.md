@@ -35,7 +35,7 @@ Choremate is a family contribution app where parents create and review household
 - Job Board claims use one conditional database update so only the first child can claim a job.
 - Twice-daily shared jobs create two independent runs, and a database constraint prevents one child from claiming both runs.
 - Approved points are immutable ledger entries. A unique job constraint prevents duplicate awards.
-- Choremate's visual identity is bright, fun, and teen-focused: bold saturated violet, pink, sunny yellow, and fresh sky tones; friendly rounded shapes and bold type; energetic feedback that makes claiming and completing jobs feel satisfying. Keep it modern and easy to scan, never babyish or like a traditional chore chart.
+- The visual identity is teen-focused: high-contrast neutrals with electric cobalt and magenta accents, bold typography, and mature productivity styling rather than a childlike chore-chart aesthetic.
 
 ## Product
 
@@ -46,7 +46,7 @@ Choremate is a family contribution app where parents create and review household
 - Confirmation and completion sounds, with completion sent directly to the parent review queue
 - Parent approval, change requests, rejection, and initiative bonuses
 - Assigned, voluntary, and bonus contribution tracking
-- Responsive Daily, Board, Review, Contributions, and Family navigation
+- Responsive Today, Board, Review, Contributions, and Family navigation
 
 ## User preferences
 

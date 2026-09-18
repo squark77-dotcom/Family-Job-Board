@@ -72,8 +72,6 @@ export default function SignUpScreen() {
         paddingHorizontal: 24,
       }}
     >
-      <View pointerEvents="none" style={[styles.bubbleLarge, { backgroundColor: colors.secondary }]} />
-      <View pointerEvents="none" style={[styles.bubbleSmall, { backgroundColor: colors.accent }]} />
       <View style={styles.header}>
         <Image 
           source={require('@/assets/images/icon.png')} 
@@ -83,9 +81,6 @@ export default function SignUpScreen() {
         <Text style={[styles.title, { color: colors.foreground }]}>
           {isVerification ? 'Verify your email' : 'Sign up'}
         </Text>
-        {!isVerification && (
-          <Text style={[styles.tagline, { color: colors.mutedForeground }]}>Join your crew and start earning.</Text>
-        )}
       </View>
 
       {isVerification ? (
@@ -172,29 +167,6 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Inter_700Bold',
     fontSize: 28,
-  },
-  tagline: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 15,
-    marginTop: 8,
-  },
-  bubbleLarge: {
-    position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    top: 22,
-    right: -72,
-    opacity: 0.7,
-  },
-  bubbleSmall: {
-    position: 'absolute',
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    top: 180,
-    left: -32,
-    opacity: 0.16,
   },
   form: {
     width: '100%',

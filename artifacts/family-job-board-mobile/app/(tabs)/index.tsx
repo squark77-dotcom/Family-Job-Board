@@ -10,7 +10,6 @@ import { EmptyState } from '@/components/EmptyState';
 import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { getGetDashboardQueryKey, getListJobsQueryKey } from '@workspace/api-client-react';
-import * as Haptics from 'expo-haptics';
 
 export default function TodayScreen() {
   const colors = useColors();
@@ -19,14 +18,12 @@ export default function TodayScreen() {
   const queryClient = useQueryClient();
   const startJob = useStartJob();
   const completeJob = useCompleteJob();
-  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
   const isChild = userProfile?.user.role === 'child';
 
   const handleStart = (jobId: string) => {
     startJob.mutate({ jobId }, {
       onSuccess: () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         queryClient.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListJobsQueryKey() });
       }
@@ -36,9 +33,6 @@ export default function TodayScreen() {
   const handleComplete = (jobId: string) => {
     completeJob.mutate({ jobId }, {
       onSuccess: () => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setSuccessMessage('Done! Sent to your parent for review.');
-        setTimeout(() => setSuccessMessage(null), 2600);
         queryClient.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListJobsQueryKey() });
       }
@@ -47,7 +41,7 @@ export default function TodayScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-       <Header title="Daily" />
+      <Header title="Today" />
       
       <ScrollView 
         contentContainerStyle={styles.content}
@@ -55,32 +49,26 @@ export default function TodayScreen() {
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary} />
         }
       >
-        {successMessage && (
-          <View style={[styles.successBanner, { backgroundColor: colors.secondary }]}>
-            <Feather name="check-circle" size={22} color={colors.secondaryForeground} />
-            <Text style={[styles.successText, { color: colors.secondaryForeground }]}>{successMessage}</Text>
-          </View>
-        )}
         {dashboard && (
           <View style={styles.statsGrid}>
-            <View style={[styles.statBox, { backgroundColor: colors.primary, borderColor: colors.primary }]}>
-              <Text style={[styles.statValue, { color: colors.primaryForeground }]}>{dashboard.today.outstanding}</Text>
-              <Text style={[styles.statLabel, { color: colors.primaryForeground }]}>Ready to go</Text>
+            <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.statValue, { color: colors.foreground }]}>{dashboard.today.outstanding}</Text>
+              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>To Do</Text>
             </View>
-            <View style={[styles.statBox, { backgroundColor: colors.accent, borderColor: colors.accent }]}>
-              <Text style={[styles.statValue, { color: colors.accentForeground }]}>{dashboard.today.completed}</Text>
-              <Text style={[styles.statLabel, { color: colors.accentForeground }]}>Crushed it</Text>
+            <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.statValue, { color: colors.foreground }]}>{dashboard.today.completed}</Text>
+              <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Done</Text>
             </View>
           </View>
         )}
 
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Today&apos;s chores</Text>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Activity</Text>
         
         {!dashboard?.recentJobs?.length && !isLoading && (
           <EmptyState
             icon={<Feather name="activity" size={32} color={colors.mutedForeground} />}
-            title="No chores yet"
-            description="Your daily chores will appear here as they are claimed and worked on."
+            title="No activity yet"
+            description="Jobs will appear here as they are claimed and worked on."
           />
         )}
 
@@ -151,7 +139,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 20,
+    padding: 16,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -161,8 +149,8 @@ const styles = StyleSheet.create({
   statBox: {
     flex: 1,
     padding: 16,
-    borderRadius: 24,
-    borderWidth: 2,
+    borderRadius: 16,
+    borderWidth: 1,
     alignItems: 'center',
   },
   statValue: {
@@ -214,19 +202,5 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: 8,
-  },
-  successBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 20,
-    marginBottom: 18,
-  },
-  successText: {
-    flex: 1,
-    fontFamily: 'Inter_700Bold',
-    fontSize: 15,
-  },
+  }
 });
