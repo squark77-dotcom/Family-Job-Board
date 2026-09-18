@@ -47,7 +47,7 @@ export default function TodayScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Header title="Today" />
+       <Header title="Daily" />
       
       <ScrollView 
         contentContainerStyle={styles.content}
@@ -74,13 +74,13 @@ export default function TodayScreen() {
           </View>
         )}
 
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Activity</Text>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Today&apos;s chores</Text>
         
         {!dashboard?.recentJobs?.length && !isLoading && (
           <EmptyState
             icon={<Feather name="activity" size={32} color={colors.mutedForeground} />}
-            title="No activity yet"
-            description="Jobs will appear here as they are claimed and worked on."
+            title="No chores yet"
+            description="Your daily chores will appear here as they are claimed and worked on."
           />
         )}
 
