@@ -73,6 +73,10 @@ autoInstallPeers: false
 
 onlyBuiltDependencies:
   - '@swc/core'
+  # These dependencies have harmless CI-safe postinstall notices.
+  - '@clerk/shared'
+  - browser-tabs-lock
+  - core-js
   - esbuild
   - msw
   - unrs-resolver

@@ -1,1 +1,2 @@
 - [Neutral onboarding role choice](onboarding-role-default.md) — treat no-family accounts as unconfigured; require an explicit parent-create or child-join path.
+- [Large Git object transfer](github-blob-transfer.md) — chunk large blobs before API upload; shell-mediated base64 output can truncate without an obvious failure.
