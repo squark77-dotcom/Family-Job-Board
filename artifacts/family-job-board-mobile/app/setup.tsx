@@ -11,9 +11,10 @@ import { getGetCurrentUserQueryKey } from '@workspace/api-client-react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { Image } from 'expo-image';
+import { SETUP_CHOICES, type SetupMode } from './setup-options';
 
 export default function SetupScreen() {
-  const [mode, setMode] = useState<'choose' | 'create' | 'join'>('choose');
+  const [mode, setMode] = useState<'choose' | SetupMode>('choose');
   const colors = useColors();
   const insets = useSafeAreaInsets();
   
@@ -32,18 +33,15 @@ export default function SetupScreen() {
       </View>
 
       <View style={styles.modeToggle}>
-        <Button 
-          label="Create Family" 
-          variant={mode === 'create' ? 'primary' : 'outline'} 
-          onPress={() => setMode('create')} 
-          style={styles.modeButton}
-        />
-        <Button 
-          label="Join Family" 
-          variant={mode === 'join' ? 'primary' : 'outline'} 
-          onPress={() => setMode('join')} 
-          style={styles.modeButton}
-        />
+        {SETUP_CHOICES.map((choice) => (
+          <Button
+            key={choice.mode}
+            label={choice.mode === 'create' ? 'Create Family' : 'Join as a child'}
+            variant={mode === choice.mode ? 'primary' : 'outline'}
+            onPress={() => setMode(choice.mode)}
+            style={styles.modeButton}
+          />
+        ))}
       </View>
 
       <KeyboardAwareScrollViewCompat 

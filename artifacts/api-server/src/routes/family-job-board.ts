@@ -64,6 +64,9 @@ import {
 } from "@workspace/db";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { Router, type IRouter, type Request } from "express";
+import {
+  prepareChildJoin,
+} from "./family-job-board-join";
 
 const router: IRouter = Router();
 
@@ -390,9 +393,27 @@ router.post("/family/join", async (req, res): Promise<void> => {
     return;
   }
   const linked = await db.transaction(async (tx) => {
+    const [candidate] = await tx
+      .select()
+      .from(childrenTable)
+      .where(
+        and(
+          eq(childrenTable.id, body.data.childId),
+          eq(childrenTable.familyId, family.id),
+        ),
+      )
+      .limit(1);
+    if (!candidate) {
+      return null;
+    }
+    const join = prepareChildJoin(context.user, candidate, family.id);
+    if (!join) {
+      return null;
+    }
+
     const [child] = await tx
       .update(childrenTable)
-      .set({ userId: context.user.id })
+      .set({ userId: join.child.userId })
       .where(
         and(
           eq(childrenTable.id, body.data.childId),
@@ -402,15 +423,19 @@ router.post("/family/join", async (req, res): Promise<void> => {
       )
       .returning();
     if (!child) return null;
-    await tx
+    const [updatedUser] = await tx
       .update(usersTable)
-      .set({
-        familyId: family.id,
-        role: "child",
-        name: child.name,
-        avatar: child.avatar,
-      })
-      .where(eq(usersTable.id, context.user.id));
+      .set(join.user)
+      .where(
+        and(
+          eq(usersTable.id, context.user.id),
+          isNull(usersTable.familyId),
+        ),
+      )
+      .returning();
+    if (!updatedUser) {
+      throw new Error("Account family changed while joining");
+    }
     return child;
   });
   if (!linked) {

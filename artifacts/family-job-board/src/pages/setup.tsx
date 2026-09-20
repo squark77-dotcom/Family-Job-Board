@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, UserPlus, Home, KeyRound, ArrowRight, UserRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FullScreenLoader } from "@/components/ui/full-screen-loader";
+import { SETUP_CHOICES, type SetupMode } from "./setup-options";
 
 export default function Setup() {
   const [, setLocation] = useLocation();
@@ -15,7 +16,7 @@ export default function Setup() {
   const { data: profile, isLoading: isProfileLoading, refetch } = useGetCurrentUser();
   const createFamily = useCreateFamily();
   const joinFamily = useJoinFamily();
-  const [mode, setMode] = useState<"choose" | "create" | "join">("choose");
+  const [mode, setMode] = useState<"choose" | SetupMode>("choose");
 
   // Parent State
   const [familyName, setFamilyName] = useState("");
@@ -110,30 +111,25 @@ export default function Setup() {
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 pt-6">
-              <Button
-                variant="outline"
-                className="h-auto justify-start gap-3 rounded-xl p-4 text-left"
-                onClick={() => setMode("create")}
-              >
-                <Home className="h-5 w-5 shrink-0 text-primary" />
-                <span>
-                  <span className="block font-bold">I’m a parent</span>
-                  <span className="block text-sm font-normal text-muted-foreground">Create a new family and add child profiles.</span>
-                </span>
-                <ArrowRight className="ml-auto h-4 w-4 shrink-0" />
-              </Button>
-              <Button
-                variant="outline"
-                className="h-auto justify-start gap-3 rounded-xl p-4 text-left"
-                onClick={() => setMode("join")}
-              >
-                <UserRound className="h-5 w-5 shrink-0 text-accent" />
-                <span>
-                  <span className="block font-bold">I’m joining as a child</span>
-                  <span className="block text-sm font-normal text-muted-foreground">Enter your family join code and child profile ID.</span>
-                </span>
-                <ArrowRight className="ml-auto h-4 w-4 shrink-0" />
-              </Button>
+              {SETUP_CHOICES.map((choice) => (
+                <Button
+                  key={choice.mode}
+                  variant="outline"
+                  className="h-auto justify-start gap-3 rounded-xl p-4 text-left"
+                  onClick={() => setMode(choice.mode)}
+                >
+                  {choice.mode === "create" ? (
+                    <Home className="h-5 w-5 shrink-0 text-primary" />
+                  ) : (
+                    <UserRound className="h-5 w-5 shrink-0 text-accent" />
+                  )}
+                  <span>
+                    <span className="block font-bold">{choice.title}</span>
+                    <span className="block text-sm font-normal text-muted-foreground">{choice.description}</span>
+                  </span>
+                  <ArrowRight className="ml-auto h-4 w-4 shrink-0" />
+                </Button>
+              ))}
             </CardContent>
           </Card>
         ) : mode === "create" ? (
