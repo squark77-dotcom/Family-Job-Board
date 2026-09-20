@@ -76,20 +76,24 @@ function PushNotificationRegistration() {
       return;
     }
     let cancelled = false;
-    registerForPushNotificationsAsync()
-      .then((token) => {
-        if (!cancelled && token) {
-          registerToken.mutate({
-            data: {
-              token,
-              platform: Platform.OS === "ios" ? "ios" : "android",
-            },
-          });
-        }
-      })
-      .catch(() => undefined);
+    const registrationTimer = setTimeout(() => {
+      void registerForPushNotificationsAsync()
+        .then((token) => {
+          if (!cancelled && token) {
+            registerToken.mutate({
+              data: {
+                token,
+                platform: Platform.OS === "ios" ? "ios" : "android",
+              },
+            });
+          }
+        })
+        .catch(() => undefined);
+    }, 750);
+
     return () => {
       cancelled = true;
+      clearTimeout(registrationTimer);
     };
   }, [isLoaded, isSignedIn, profile?.user.role]);
 
@@ -168,10 +172,10 @@ export default function RootLayout() {
         >
           <QueryClientProvider client={queryClient}>
             <ClerkQueryClientCacheInvalidator />
-              <PushNotificationRegistration />
             <GestureHandlerRootView style={{ flex: 1 }}>
               <KeyboardProvider>
                 <RootLayoutNav />
+                <PushNotificationRegistration />
               </KeyboardProvider>
             </GestureHandlerRootView>
           </QueryClientProvider>
