@@ -74,6 +74,10 @@ export interface Child {
   assignedCompleted: number;
   voluntaryCompleted: number;
   bonusPoints: number;
+  /** @nullable */
+  inviteEmail: string | null;
+  /** @nullable */
+  inviteStatus: string | null;
 }
 
 export interface Family {
@@ -101,6 +105,8 @@ export interface ChildInput {
      * @nullable
      */
   avatar?: string | null;
+  /** @nullable */
+  email?: string | null;
 }
 
 export interface FamilySetupInput {
@@ -131,6 +137,66 @@ export interface FamilyJoinInput {
      */
   joinCode: string;
   childId: string;
+}
+
+export type FamilyInvitationInputKind = typeof FamilyInvitationInputKind[keyof typeof FamilyInvitationInputKind];
+
+
+export const FamilyInvitationInputKind = {
+  child: 'child',
+  parent: 'parent',
+} as const;
+
+export interface FamilyInvitationInput {
+  /**
+     * @minLength 3
+     * @maxLength 320
+     */
+  email: string;
+  kind: FamilyInvitationInputKind;
+  /** @nullable */
+  childId?: string | null;
+}
+
+export type FamilyInvitationKind = typeof FamilyInvitationKind[keyof typeof FamilyInvitationKind];
+
+
+export const FamilyInvitationKind = {
+  child: 'child',
+  parent: 'parent',
+} as const;
+
+export interface FamilyInvitation {
+  id: string;
+  email: string;
+  kind: FamilyInvitationKind;
+  /** @nullable */
+  childId: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export type PushTokenInputPlatform = typeof PushTokenInputPlatform[keyof typeof PushTokenInputPlatform];
+
+
+export const PushTokenInputPlatform = {
+  ios: 'ios',
+  android: 'android',
+  web: 'web',
+} as const;
+
+export interface PushTokenInput {
+  /**
+     * @minLength 10
+     * @maxLength 300
+     */
+  token: string;
+  platform: PushTokenInputPlatform;
+}
+
+export interface ReminderResponse {
+  sent: boolean;
+  childName: string;
 }
 
 export interface ChildUpdate {
@@ -176,6 +242,7 @@ export interface Job {
      * @nullable
      */
   estimatedMinutes: number | null;
+  isDaily: boolean;
   createdAt: string;
   updatedAt: string;
   /** @nullable */
@@ -221,6 +288,7 @@ export interface JobInput {
      * @nullable
      */
   estimatedMinutes?: number | null;
+  isDaily?: boolean;
   /**
      * Number of independently claimable instances to create for the day
      * @minimum 1
@@ -354,6 +422,11 @@ export type UnauthorizedResponse = Error;
  * User is not allowed to perform this action
  */
 export type ForbiddenResponse = Error;
+
+/**
+ * Request conflicts with the current resource state
+ */
+export type ConflictResponse = Error;
 
 /**
  * Resource not found

@@ -17,4 +17,6 @@ export interface ChildInput {
      * @nullable
      */
   avatar?: string | null;
+  /** @nullable */
+  email?: string | null;
 }

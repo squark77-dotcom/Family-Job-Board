@@ -17,6 +17,7 @@ import Board from "@/pages/app/board";
 import Review from "@/pages/app/review";
 import Contributions from "@/pages/app/contributions";
 import Family from "@/pages/app/family";
+import InviteAccept from "@/pages/invite-accept";
 
 import { useGetCurrentUser } from "@workspace/api-client-react";
 import { AppLayout } from "./components/layout/app-layout";
@@ -167,6 +168,7 @@ function AppRoutes() {
         <Route path="/" component={HomeRedirect} />
         <Route path="/sign-in/*?" component={SignInPage} />
         <Route path="/sign-up/*?" component={SignUpPage} />
+        <Route path="/invite/accept" component={InviteAccept} />
         
         {/* Setup Route - authenticated but outside AppLayout */}
         <Route path="/setup">

@@ -37,6 +37,7 @@ export interface Job {
      * @nullable
      */
   estimatedMinutes: number | null;
+  isDaily: boolean;
   createdAt: Date;
   updatedAt: Date;
   /** @nullable */

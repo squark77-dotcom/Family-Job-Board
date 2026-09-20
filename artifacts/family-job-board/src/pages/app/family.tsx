@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetCurrentUser, useUpdateFamily, useListChildren, useCreateChild, useAwardBonus, getListChildrenQueryKey } from "@workspace/api-client-react";
+import { useGetCurrentUser, useUpdateFamily, useListChildren, useCreateChild, useAwardBonus, useCreateFamilyInvitation, getListChildrenQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,8 +74,10 @@ function CreateChildDialog() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const createChild = useCreateChild();
+  const invite = useCreateFamilyInvitation();
   
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
 
   const handleCreate = () => {
     if (!name) {
@@ -85,10 +87,16 @@ function CreateChildDialog() {
     createChild.mutate({
       data: { name }
     }, {
-      onSuccess: () => {
-        toast({ title: "Profile added" });
+      onSuccess: (child) => {
+        if (email.trim()) {
+          invite.mutate({
+            data: { email: email.trim(), kind: "child", childId: child.id },
+          });
+        }
+        toast({ title: email.trim() ? "Profile added and invite sent" : "Profile added" });
         setOpen(false);
         setName("");
+        setEmail("");
         queryClient.invalidateQueries({ queryKey: ["/api/family/children"] });
       }
     });
@@ -108,6 +116,8 @@ function CreateChildDialog() {
         <div className="py-2">
           <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground block mb-2">Name</Label>
           <Input className="h-11 rounded-xl bg-muted/50 border-border" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Alex" autoFocus />
+          <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground block mb-2 mt-4">Email invite (optional)</Label>
+          <Input className="h-11 rounded-xl bg-muted/50 border-border" value={email} onChange={e => setEmail(e.target.value)} placeholder="alex@example.com" type="email" />
         </div>
         <DialogFooter className="mt-6">
           <Button className="w-full rounded-xl font-bold h-12 shadow-md shadow-primary/20 active:scale-[0.98] transition-all" onClick={handleCreate} disabled={createChild.isPending}>
@@ -115,6 +125,37 @@ function CreateChildDialog() {
             Save Profile
           </Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ParentInviteDialog() {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const { toast } = useToast();
+  const invite = useCreateFamilyInvitation();
+  const handleInvite = () => {
+    if (!email.trim()) return;
+    invite.mutate({ data: { email: email.trim(), kind: "parent" } }, {
+      onSuccess: () => {
+        toast({ title: "Co-parent invite sent" });
+        setEmail("");
+        setOpen(false);
+      },
+      onError: (error: any) => toast({ title: "Could not send invite", description: error?.error, variant: "destructive" }),
+    });
+  };
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-xl font-bold"><Users className="w-4 h-4 mr-2" /> Invite co-parent</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px] rounded-[1.5rem] p-6">
+        <DialogHeader><DialogTitle>Invite a co-parent</DialogTitle></DialogHeader>
+        <Label>Email address</Label>
+        <Input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="parent@example.com" />
+        <DialogFooter><Button onClick={handleInvite} disabled={invite.isPending || !email.trim()}>{invite.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Send invite</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -163,6 +204,7 @@ export default function Family() {
             Manage your shared workspace.
           </p>
         </div>
+        {isParent && <ParentInviteDialog />}
       </div>
 
       <Card className="shadow-sm border-border rounded-[1.5rem] overflow-hidden">

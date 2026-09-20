@@ -17,4 +17,8 @@ export interface Child {
   assignedCompleted: number;
   voluntaryCompleted: number;
   bonusPoints: number;
+  /** @nullable */
+  inviteEmail: string | null;
+  /** @nullable */
+  inviteStatus: string | null;
 }

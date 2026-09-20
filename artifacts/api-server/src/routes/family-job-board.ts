@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import { getAuth } from "@clerk/express";
+import { clerkClient, getAuth } from "@clerk/express";
 import {
   AwardBonusBody,
   AwardBonusResponse,
@@ -20,6 +20,12 @@ import {
   GetPointsResponse,
   JoinFamilyBody,
   JoinFamilyResponse,
+  CreateFamilyInvitationBody,
+  CreateFamilyInvitationResponse,
+  AcceptFamilyInvitationParams,
+  AcceptFamilyInvitationResponse,
+  RegisterPushTokenBody,
+  RemindJobResponse,
   ListChildrenResponse,
   ListJobsQueryParams,
   ListJobsResponse,
@@ -43,6 +49,9 @@ import {
 import {
   childrenTable,
   db,
+  familyInvitationsTable,
+  expoPushTokensTable,
+  sentJobRemindersTable,
   familiesTable,
   jobEventsTable,
   jobsTable,
@@ -53,7 +62,7 @@ import {
   type JobRecord,
   type UserRecord,
 } from "@workspace/db";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { Router, type IRouter, type Request } from "express";
 
 const router: IRouter = Router();
@@ -62,6 +71,51 @@ type Context = {
   user: UserRecord;
   child: ChildRecord | null;
 };
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function inviteRedirectUrl(req: Request, invitationId: string) {
+  const origin =
+    req.get("origin") ||
+    (process.env.REPLIT_DEV_DOMAIN
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : `https://${req.get("host")}`);
+  return `${origin}/invite/accept?invitationId=${encodeURIComponent(invitationId)}`;
+}
+
+async function sendPushToChild(
+  childId: string,
+  title: string,
+  body: string,
+  data: Record<string, string>,
+) {
+  const tokens = await db
+    .select({ token: expoPushTokensTable.token })
+    .from(expoPushTokensTable)
+    .where(eq(expoPushTokensTable.childId, childId));
+  if (!tokens.length) return false;
+
+  const response = await fetch("https://exp.host/--/api/v2/push/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(
+      tokens.map(({ token }) => ({
+        to: token,
+        sound: "default",
+        title,
+        body,
+        data,
+      })),
+    ),
+  });
+  if (!response.ok) return false;
+  const result = (await response.json()) as {
+    data?: Array<{ status?: string; details?: { error?: string } }>;
+  };
+  return Boolean(result.data?.some((ticket) => ticket.status === "ok"));
+}
 
 async function getContext(req: Request): Promise<Context | null> {
   const auth = getAuth(req);
@@ -106,13 +160,22 @@ function iso(value: Date | null): string | null {
 }
 
 async function childSummaries(familyId: string) {
-  const [children, jobs, points] = await Promise.all([
+  const [children, jobs, points, invitations] = await Promise.all([
     db.select().from(childrenTable).where(eq(childrenTable.familyId, familyId)),
     db.select().from(jobsTable).where(eq(jobsTable.familyId, familyId)),
     db
       .select()
       .from(pointsTransactionsTable)
       .where(eq(pointsTransactionsTable.familyId, familyId)),
+    db
+      .select()
+      .from(familyInvitationsTable)
+      .where(
+        and(
+          eq(familyInvitationsTable.familyId, familyId),
+          eq(familyInvitationsTable.kind, "child"),
+        ),
+      ),
   ]);
 
   return children.map((child) => {
@@ -134,6 +197,16 @@ async function childSummaries(familyId: string) {
       bonusPoints: childPoints
         .filter((point) => point.type === "initiative_bonus")
         .reduce((sum, point) => sum + point.points, 0),
+      inviteEmail:
+        invitations
+          .filter((invite) => invite.childId === child.id)
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
+          ?.email ?? null,
+      inviteStatus:
+        invitations
+          .filter((invite) => invite.childId === child.id)
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
+          ?.status ?? null,
     };
   });
 }
@@ -185,6 +258,7 @@ async function mapJobs(rows: JobRecord[]) {
     status: job.status,
     dueDate: iso(job.dueDate),
     estimatedMinutes: job.estimatedMinutes,
+    isDaily: job.isDaily,
     createdAt: job.createdAt.toISOString(),
     updatedAt: job.updatedAt.toISOString(),
     completedAt: iso(job.completedAt),
@@ -408,8 +482,287 @@ router.post("/family/children", async (req, res): Promise<void> => {
       assignedCompleted: 0,
       voluntaryCompleted: 0,
       bonusPoints: 0,
+      inviteEmail: null,
+      inviteStatus: null,
     }),
   );
+});
+
+router.post("/family/invitations", async (req, res): Promise<void> => {
+  const context = await getContext(req);
+  if (!requireFamily(context) || context.user.role !== "parent") {
+    res.status(context ? 403 : 401).json({ error: "Parent access required" });
+    return;
+  }
+  const body = CreateFamilyInvitationBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: body.error.message });
+    return;
+  }
+  const email = normalizeEmail(body.data.email);
+  if (body.data.kind === "child" && !body.data.childId) {
+    res.status(400).json({ error: "Child invitations need a child profile" });
+    return;
+  }
+  if (body.data.kind === "parent" && body.data.childId) {
+    res.status(400).json({ error: "Parent invitations cannot target a child" });
+    return;
+  }
+  if (body.data.kind === "parent") {
+    const parents = await db
+      .select()
+      .from(usersTable)
+      .where(
+        and(
+          eq(usersTable.familyId, context.user.familyId),
+          eq(usersTable.role, "parent"),
+        ),
+      );
+    if (parents.length >= 2) {
+      res.status(409).json({ error: "A family can have up to two parents" });
+      return;
+    }
+  }
+  let child: ChildRecord | undefined;
+  if (body.data.kind === "child") {
+    [child] = await db
+      .select()
+      .from(childrenTable)
+      .where(
+        and(
+          eq(childrenTable.id, body.data.childId!),
+          eq(childrenTable.familyId, context.user.familyId),
+        ),
+      )
+      .limit(1);
+    if (!child) {
+      res.status(404).json({ error: "Child not found" });
+      return;
+    }
+    if (child.userId) {
+      res.status(409).json({ error: "That child profile is already linked" });
+      return;
+    }
+  }
+  const [existing] = await db
+    .select()
+    .from(familyInvitationsTable)
+    .where(
+      and(
+        eq(familyInvitationsTable.familyId, context.user.familyId),
+        eq(familyInvitationsTable.email, email),
+        eq(familyInvitationsTable.kind, body.data.kind),
+        eq(familyInvitationsTable.status, "pending"),
+      ),
+    )
+    .limit(1);
+  if (existing) {
+    res.status(409).json({ error: "An invitation is already pending" });
+    return;
+  }
+  const [invitation] = await db
+    .insert(familyInvitationsTable)
+    .values({
+      familyId: context.user.familyId,
+      childId: child?.id ?? null,
+      email,
+      kind: body.data.kind,
+      invitedByUserId: context.user.id,
+    })
+    .returning();
+  try {
+    const clerkInvitation = await clerkClient.invitations.createInvitation({
+      emailAddress: email,
+      redirectUrl: inviteRedirectUrl(req, invitation.id),
+      publicMetadata: { invitationId: invitation.id },
+      ignoreExisting: true,
+    });
+    const [updated] = await db
+      .update(familyInvitationsTable)
+      .set({ clerkInvitationId: clerkInvitation.id })
+      .where(eq(familyInvitationsTable.id, invitation.id))
+      .returning();
+    res.status(201).json(
+      CreateFamilyInvitationResponse.parse({
+        id: updated.id,
+        email: updated.email,
+        kind: updated.kind,
+        childId: updated.childId,
+        status: updated.status,
+        createdAt: updated.createdAt.toISOString(),
+      }),
+    );
+  } catch (error) {
+    await db
+      .delete(familyInvitationsTable)
+      .where(eq(familyInvitationsTable.id, invitation.id));
+    res.status(502).json({ error: "The invitation email could not be sent" });
+  }
+});
+
+router.post(
+  "/family/invitations/:invitationId/accept",
+  async (req, res): Promise<void> => {
+    const context = await getContext(req);
+    if (!context) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+    const params = AcceptFamilyInvitationParams.safeParse(req.params);
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+    const [invitation] = await db
+      .select()
+      .from(familyInvitationsTable)
+      .where(eq(familyInvitationsTable.id, params.data.invitationId))
+      .limit(1);
+    if (!invitation) {
+      res.status(404).json({ error: "Invitation not found" });
+      return;
+    }
+    if (invitation.status !== "pending") {
+      res.status(409).json({ error: "This invitation is no longer pending" });
+      return;
+    }
+    const auth = getAuth(req);
+    const clerkUserId = auth.userId;
+    if (!clerkUserId) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+    const clerkUser = await clerkClient.users.getUser(clerkUserId);
+    const email = clerkUser.primaryEmailAddress?.emailAddress;
+    if (!email || normalizeEmail(email) !== invitation.email) {
+      res.status(403).json({ error: "This invitation belongs to a different email" });
+      return;
+    }
+    if (context.user.familyId) {
+      res.status(409).json({ error: "This account already belongs to a family" });
+      return;
+    }
+    const linked = await db.transaction(async (tx) => {
+      if (invitation.kind === "child") {
+        const [child] = await tx
+          .update(childrenTable)
+          .set({ userId: context.user.id })
+          .where(
+            and(
+              eq(childrenTable.id, invitation.childId!),
+              eq(childrenTable.familyId, invitation.familyId),
+              isNull(childrenTable.userId),
+            ),
+          )
+          .returning();
+        if (!child) return null;
+        await tx
+          .update(usersTable)
+          .set({
+            familyId: invitation.familyId,
+            role: "child",
+            name: child.name,
+            avatar: child.avatar,
+          })
+          .where(eq(usersTable.id, context.user.id));
+        await tx
+          .update(familyInvitationsTable)
+          .set({
+            status: "accepted",
+            acceptedUserId: context.user.id,
+            acceptedAt: new Date(),
+          })
+          .where(eq(familyInvitationsTable.id, invitation.id));
+        return child;
+      }
+      const parents = await tx
+        .select()
+        .from(usersTable)
+        .where(
+          and(
+            eq(usersTable.familyId, invitation.familyId),
+            eq(usersTable.role, "parent"),
+          ),
+        );
+      if (parents.length >= 2) return null;
+      await tx
+        .update(usersTable)
+        .set({ familyId: invitation.familyId, role: "parent" })
+        .where(eq(usersTable.id, context.user.id));
+      await tx
+        .update(familyInvitationsTable)
+        .set({
+          status: "accepted",
+          acceptedUserId: context.user.id,
+          acceptedAt: new Date(),
+        })
+        .where(eq(familyInvitationsTable.id, invitation.id));
+      return true;
+    });
+    if (!linked) {
+      res.status(409).json({ error: "This invitation can no longer be accepted" });
+      return;
+    }
+    const family = await familyResponse(invitation.familyId);
+    const [updatedUser] = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, context.user.id))
+      .limit(1);
+    const child =
+      updatedUser.role === "child"
+        ? await db
+            .select()
+            .from(childrenTable)
+            .where(eq(childrenTable.userId, updatedUser.id))
+            .then((rows) => rows[0] ?? null)
+        : null;
+    res.json(
+      AcceptFamilyInvitationResponse.parse({
+        user: {
+          id: updatedUser.id,
+          childId: child?.id ?? null,
+          name: child?.name ?? updatedUser.name,
+          role: updatedUser.role,
+          familyId: updatedUser.familyId,
+          avatar: child?.avatar ?? updatedUser.avatar,
+          active: child?.active ?? updatedUser.active,
+        },
+        family,
+      }),
+    );
+  },
+);
+
+router.post("/notifications/push-token", async (req, res): Promise<void> => {
+  const context = await getContext(req);
+  if (!context) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  const body = RegisterPushTokenBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: body.error.message });
+    return;
+  }
+  await db
+    .insert(expoPushTokensTable)
+    .values({
+      userId: context.user.id,
+      childId: context.child?.id ?? null,
+      token: body.data.token,
+      platform: body.data.platform,
+    })
+    .onConflictDoUpdate({
+      target: expoPushTokensTable.token,
+      set: {
+        userId: context.user.id,
+        childId: context.child?.id ?? null,
+        platform: body.data.platform,
+        updatedAt: new Date(),
+      },
+    });
+  res.sendStatus(204);
 });
 
 router.patch("/family/children/:childId", async (req, res): Promise<void> => {
@@ -497,6 +850,22 @@ router.post("/jobs", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Assigned jobs need a child" });
     return;
   }
+  if (body.data.assignedChildId) {
+    const [assignedChild] = await db
+      .select({ id: childrenTable.id })
+      .from(childrenTable)
+      .where(
+        and(
+          eq(childrenTable.id, body.data.assignedChildId),
+          eq(childrenTable.familyId, context.user.familyId),
+        ),
+      )
+      .limit(1);
+    if (!assignedChild) {
+      res.status(400).json({ error: "Assigned child is not in this family" });
+      return;
+    }
+  }
   const dailyRuns = body.data.dailyRuns ?? 1;
   const repeatGroupId = dailyRuns > 1 ? randomUUID() : null;
   const { dailyRuns: _dailyRuns, ...jobInput } = body.data;
@@ -534,6 +903,58 @@ router.post("/jobs", async (req, res): Promise<void> => {
     return created;
   });
   res.status(201).json(CreateJobResponse.parse(await mapJob(jobs[0])));
+});
+
+router.post("/jobs/:jobId/remind", async (req, res): Promise<void> => {
+  const context = await getContext(req);
+  if (!requireFamily(context) || context.user.role !== "parent") {
+    res.status(context ? 403 : 401).json({ error: "Parent access required" });
+    return;
+  }
+  const params = StartJobParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const [job] = await db
+    .select()
+    .from(jobsTable)
+    .where(
+      and(
+        eq(jobsTable.id, params.data.jobId),
+        eq(jobsTable.familyId, context.user.familyId),
+      ),
+    )
+    .limit(1);
+  if (!job || job.status === "completed" || job.status === "ready_for_review") {
+    res.status(409).json({ error: "This job does not need a reminder" });
+    return;
+  }
+  const childId = job.assignedChildId ?? job.claimedByChildId;
+  if (!childId) {
+    res.status(409).json({ error: "This job is not assigned to a child yet" });
+    return;
+  }
+  const [child] = await db
+    .select()
+    .from(childrenTable)
+    .where(eq(childrenTable.id, childId))
+    .limit(1);
+  if (!child) {
+    res.status(409).json({ error: "The target child profile is unavailable" });
+    return;
+  }
+  const sent = await sendPushToChild(
+    child.id,
+    "Choremate reminder",
+    `Please finish “${job.title}” when you can.`,
+    { type: "job_reminder", jobId: job.id },
+  );
+  if (!sent) {
+    res.status(409).json({ error: "That child has not enabled push notifications" });
+    return;
+  }
+  res.json(RemindJobResponse.parse({ sent: true, childName: child.name }));
 });
 
 router.patch("/jobs/:jobId", async (req, res): Promise<void> => {
@@ -1071,5 +1492,53 @@ router.get("/dashboard", async (req, res): Promise<void> => {
     }),
   );
 });
+
+export async function runOverdueJobReminders() {
+  const now = new Date();
+  const jobs = await db
+    .select()
+    .from(jobsTable)
+    .where(
+      inArray(jobsTable.status, [
+        "to_do",
+        "claimed",
+        "in_progress",
+        "changes_requested",
+      ]),
+    );
+  const reminderDate = now.toISOString().slice(0, 10);
+  for (const job of jobs) {
+    const childId = job.assignedChildId ?? job.claimedByChildId;
+    if (!childId) continue;
+    const threshold = job.isDaily
+      ? now.getTime() - 8 * 60 * 60 * 1000
+      : now.getTime() - 24 * 60 * 60 * 1000;
+    const overdue =
+      (job.dueDate ? job.dueDate.getTime() <= now.getTime() : job.createdAt.getTime() <= threshold);
+    if (!overdue) continue;
+    const [claimed] = await db
+      .insert(sentJobRemindersTable)
+      .values({
+        jobId: job.id,
+        childId,
+        kind: "automatic",
+        reminderDate,
+      })
+      .onConflictDoNothing()
+      .returning();
+    if (!claimed) continue;
+    const sent = await sendPushToChild(
+      childId,
+      "Choremate reminder",
+      `“${job.title}” is still waiting for you.`,
+      { type: "job_reminder", jobId: job.id },
+    );
+    if (!sent) {
+      await db
+        .delete(sentJobRemindersTable)
+        .where(eq(sentJobRemindersTable.id, claimed.id));
+    }
+  }
+}
 
 export default router;

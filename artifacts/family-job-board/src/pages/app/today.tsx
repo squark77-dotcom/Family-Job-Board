@@ -1,9 +1,9 @@
-import { useGetCurrentUser, useGetDashboard, useListJobs, useStartJob, useCompleteJob, useDeleteJob, Job, JobStatus, getGetDashboardQueryKey, getListJobsQueryKey } from "@workspace/api-client-react";
+import { useGetCurrentUser, useGetDashboard, useListJobs, useStartJob, useCompleteJob, useDeleteJob, useRemindJob, Job, JobStatus, getGetDashboardQueryKey, getListJobsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlayCircle, CheckCircle2, Clock, CheckCircle, Trash2, ArrowRight } from "lucide-react";
+import { Loader2, PlayCircle, CheckCircle2, Clock, CheckCircle, Trash2, ArrowRight, Bell } from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { playCompletionSound } from "@/lib/sound-effects";
@@ -14,6 +14,7 @@ function JobCard({ job, role }: { job: Job; role: string }) {
   const startJob = useStartJob();
   const deleteJob = useDeleteJob();
   const completeJob = useCompleteJob();
+  const remindJob = useRemindJob();
 
   const handleStart = () => {
     startJob.mutate({ jobId: job.id }, {
@@ -47,6 +48,13 @@ function JobCard({ job, role }: { job: Job; role: string }) {
         queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
         queryClient.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
       }
+    });
+  };
+
+  const handleRemind = () => {
+    remindJob.mutate({ jobId: job.id }, {
+      onSuccess: () => toast({ title: "Reminder sent", description: "The child will receive a push notification." }),
+      onError: (error: any) => toast({ title: "Could not send reminder", description: error?.error ?? "Push notifications are not enabled.", variant: "destructive" }),
     });
   };
 
@@ -138,6 +146,12 @@ function JobCard({ job, role }: { job: Job; role: string }) {
             {job.status === "ready_for_review" && (
               <Button variant="secondary" className="w-full font-bold h-10 rounded-xl" asChild>
                 <a href="/app/review">Review <ArrowRight className="w-4 h-4 ml-2" /></a>
+              </Button>
+            )}
+            {(job.status === "to_do" || job.status === "claimed" || job.status === "in_progress" || job.status === "changes_requested") &&
+              (job.assignedChildId || job.claimedByChildId) && (
+              <Button variant="outline" className="h-10 rounded-xl font-bold" onClick={handleRemind} disabled={remindJob.isPending}>
+                {remindJob.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Bell className="w-4 h-4 mr-2" /> Remind</>}
               </Button>
             )}
             {(job.status === "to_do" || job.status === "claimed" || job.status === "changes_requested") && (

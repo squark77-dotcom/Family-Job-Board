@@ -45,7 +45,9 @@ export const GetCurrentUserResponse = zod.object({
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
-  "bonusPoints": zod.number().int()
+  "bonusPoints": zod.number().int(),
+  "inviteEmail": zod.string().email().nullable(),
+  "inviteStatus": zod.string().nullable()
 }))
 }).optional()
 })
@@ -68,7 +70,8 @@ export const CreateFamilyBody = zod.object({
   "name": zod.string().min(1).max(createFamilyBodyNameMax),
   "children": zod.array(zod.object({
   "name": zod.string().min(1).max(createFamilyBodyChildrenItemNameMax),
-  "avatar": zod.string().max(createFamilyBodyChildrenItemAvatarMax).nullish()
+  "avatar": zod.string().max(createFamilyBodyChildrenItemAvatarMax).nullish(),
+  "email": zod.string().email().nullish()
 })).min(1).max(createFamilyBodyChildrenMax)
 })
 
@@ -87,7 +90,9 @@ export const CreateFamilyResponse = zod.object({
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
-  "bonusPoints": zod.number().int()
+  "bonusPoints": zod.number().int(),
+  "inviteEmail": zod.string().email().nullable(),
+  "inviteStatus": zod.string().nullable()
 }))
 })
 
@@ -118,7 +123,9 @@ export const UpdateFamilyResponse = zod.object({
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
-  "bonusPoints": zod.number().int()
+  "bonusPoints": zod.number().int(),
+  "inviteEmail": zod.string().email().nullable(),
+  "inviteStatus": zod.string().nullable()
 }))
 })
 
@@ -161,7 +168,9 @@ export const JoinFamilyResponse = zod.object({
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
-  "bonusPoints": zod.number().int()
+  "bonusPoints": zod.number().int(),
+  "inviteEmail": zod.string().email().nullable(),
+  "inviteStatus": zod.string().nullable()
 }))
 }).optional()
 })
@@ -179,7 +188,9 @@ export const ListChildrenResponseItem = zod.object({
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
-  "bonusPoints": zod.number().int()
+  "bonusPoints": zod.number().int(),
+  "inviteEmail": zod.string().email().nullable(),
+  "inviteStatus": zod.string().nullable()
 })
 export const ListChildrenResponse = zod.array(ListChildrenResponseItem)
 
@@ -195,7 +206,8 @@ export const createChildBodyAvatarMax = 8;
 
 export const CreateChildBody = zod.object({
   "name": zod.string().min(1).max(createChildBodyNameMax),
-  "avatar": zod.string().max(createChildBodyAvatarMax).nullish()
+  "avatar": zod.string().max(createChildBodyAvatarMax).nullish(),
+  "email": zod.string().email().nullish()
 })
 
 export const CreateChildResponse = zod.object({
@@ -207,7 +219,9 @@ export const CreateChildResponse = zod.object({
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
-  "bonusPoints": zod.number().int()
+  "bonusPoints": zod.number().int(),
+  "inviteEmail": zod.string().email().nullable(),
+  "inviteStatus": zod.string().nullable()
 })
 
 
@@ -239,7 +253,73 @@ export const UpdateChildResponse = zod.object({
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
-  "bonusPoints": zod.number().int()
+  "bonusPoints": zod.number().int(),
+  "inviteEmail": zod.string().email().nullable(),
+  "inviteStatus": zod.string().nullable()
+})
+
+
+/**
+ * @summary Invite a child or co-parent by email
+ */
+export const createFamilyInvitationBodyEmailMin = 3;
+export const createFamilyInvitationBodyEmailMax = 320;
+
+
+
+export const CreateFamilyInvitationBody = zod.object({
+  "email": zod.string().email().min(createFamilyInvitationBodyEmailMin).max(createFamilyInvitationBodyEmailMax),
+  "kind": zod.enum(['child', 'parent']),
+  "childId": zod.string().nullish()
+})
+
+export const CreateFamilyInvitationResponse = zod.object({
+  "id": zod.string(),
+  "email": zod.string().email(),
+  "kind": zod.enum(['child', 'parent']),
+  "childId": zod.string().nullable(),
+  "status": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Accept an invitation for the signed-in account
+ */
+export const AcceptFamilyInvitationParams = zod.object({
+  "invitationId": zod.coerce.string()
+})
+
+export const AcceptFamilyInvitationResponse = zod.object({
+  "user": zod.object({
+  "id": zod.string(),
+  "childId": zod.string().nullable(),
+  "name": zod.string(),
+  "role": zod.enum(['parent', 'child']),
+  "familyId": zod.string().nullable(),
+  "avatar": zod.string().nullable(),
+  "active": zod.boolean()
+}),
+  "family": zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "parentId": zod.string(),
+  "joinCode": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "children": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "avatar": zod.string().nullable(),
+  "active": zod.boolean(),
+  "linked": zod.boolean(),
+  "totalPoints": zod.number().int(),
+  "assignedCompleted": zod.number().int(),
+  "voluntaryCompleted": zod.number().int(),
+  "bonusPoints": zod.number().int(),
+  "inviteEmail": zod.string().email().nullable(),
+  "inviteStatus": zod.string().nullable()
+}))
+}).optional()
 })
 
 
@@ -272,7 +352,9 @@ export const GetDashboardResponse = zod.object({
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
-  "bonusPoints": zod.number().int()
+  "bonusPoints": zod.number().int(),
+  "inviteEmail": zod.string().email().nullable(),
+  "inviteStatus": zod.string().nullable()
 })),
   "recentJobs": zod.array(zod.object({
   "id": zod.string(),
@@ -288,6 +370,7 @@ export const GetDashboardResponse = zod.object({
   "status": zod.enum(['to_do', 'claimed', 'in_progress', 'completed', 'ready_for_review', 'changes_requested']),
   "dueDate": zod.coerce.date().nullable(),
   "estimatedMinutes": zod.number().int().min(1).max(getDashboardResponseRecentJobsItemEstimatedMinutesMax).nullable(),
+  "isDaily": zod.boolean(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "completedAt": zod.coerce.date().nullable(),
@@ -331,6 +414,7 @@ export const ListJobsResponseItem = zod.object({
   "status": zod.enum(['to_do', 'claimed', 'in_progress', 'completed', 'ready_for_review', 'changes_requested']),
   "dueDate": zod.coerce.date().nullable(),
   "estimatedMinutes": zod.number().int().min(1).max(listJobsResponseEstimatedMinutesMax).nullable(),
+  "isDaily": zod.boolean(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "completedAt": zod.coerce.date().nullable(),
@@ -352,6 +436,7 @@ export const createJobBodyPointsMax = 100;
 
 export const createJobBodyEstimatedMinutesMax = 1440;
 
+export const createJobBodyIsDailyDefault = false;
 export const createJobBodyDailyRunsDefault = 1;
 export const createJobBodyDailyRunsMax = 2;
 
@@ -365,6 +450,7 @@ export const CreateJobBody = zod.object({
   "assignedChildId": zod.string().nullish(),
   "dueDate": zod.coerce.date().nullish(),
   "estimatedMinutes": zod.number().int().min(1).max(createJobBodyEstimatedMinutesMax).nullish(),
+  "isDaily": zod.boolean().default(createJobBodyIsDailyDefault),
   "dailyRuns": zod.number().int().min(1).max(createJobBodyDailyRunsMax).default(createJobBodyDailyRunsDefault).describe('Number of independently claimable instances to create for the day')
 })
 
@@ -392,6 +478,7 @@ export const CreateJobResponse = zod.object({
   "status": zod.enum(['to_do', 'claimed', 'in_progress', 'completed', 'ready_for_review', 'changes_requested']),
   "dueDate": zod.coerce.date().nullable(),
   "estimatedMinutes": zod.number().int().min(1).max(createJobResponseEstimatedMinutesMax).nullable(),
+  "isDaily": zod.boolean(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "completedAt": zod.coerce.date().nullable(),
@@ -451,6 +538,7 @@ export const UpdateJobResponse = zod.object({
   "status": zod.enum(['to_do', 'claimed', 'in_progress', 'completed', 'ready_for_review', 'changes_requested']),
   "dueDate": zod.coerce.date().nullable(),
   "estimatedMinutes": zod.number().int().min(1).max(updateJobResponseEstimatedMinutesMax).nullable(),
+  "isDaily": zod.boolean(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "completedAt": zod.coerce.date().nullable(),
@@ -501,6 +589,7 @@ export const ClaimJobResponse = zod.object({
   "status": zod.enum(['to_do', 'claimed', 'in_progress', 'completed', 'ready_for_review', 'changes_requested']),
   "dueDate": zod.coerce.date().nullable(),
   "estimatedMinutes": zod.number().int().min(1).max(claimJobResponseEstimatedMinutesMax).nullable(),
+  "isDaily": zod.boolean(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "completedAt": zod.coerce.date().nullable(),
@@ -541,6 +630,7 @@ export const StartJobResponse = zod.object({
   "status": zod.enum(['to_do', 'claimed', 'in_progress', 'completed', 'ready_for_review', 'changes_requested']),
   "dueDate": zod.coerce.date().nullable(),
   "estimatedMinutes": zod.number().int().min(1).max(startJobResponseEstimatedMinutesMax).nullable(),
+  "isDaily": zod.boolean(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "completedAt": zod.coerce.date().nullable(),
@@ -581,6 +671,7 @@ export const CompleteJobResponse = zod.object({
   "status": zod.enum(['to_do', 'claimed', 'in_progress', 'completed', 'ready_for_review', 'changes_requested']),
   "dueDate": zod.coerce.date().nullable(),
   "estimatedMinutes": zod.number().int().min(1).max(completeJobResponseEstimatedMinutesMax).nullable(),
+  "isDaily": zod.boolean(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "completedAt": zod.coerce.date().nullable(),
@@ -671,6 +762,7 @@ export const ReviewJobResponse = zod.object({
   "status": zod.enum(['to_do', 'claimed', 'in_progress', 'completed', 'ready_for_review', 'changes_requested']),
   "dueDate": zod.coerce.date().nullable(),
   "estimatedMinutes": zod.number().int().min(1).max(reviewJobResponseEstimatedMinutesMax).nullable(),
+  "isDaily": zod.boolean(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "completedAt": zod.coerce.date().nullable(),
@@ -678,6 +770,35 @@ export const ReviewJobResponse = zod.object({
   "occurrenceNumber": zod.number().int().min(1).max(reviewJobResponseOccurrenceNumberMax),
   "occurrenceTotal": zod.number().int().min(1).max(reviewJobResponseOccurrenceTotalMax)
 })
+
+
+/**
+ * @summary Send an immediate push reminder to the assigned child
+ */
+export const RemindJobParams = zod.object({
+  "jobId": zod.coerce.string()
+})
+
+export const RemindJobResponse = zod.object({
+  "sent": zod.boolean(),
+  "childName": zod.string()
+})
+
+
+/**
+ * @summary Register the current mobile device for reminders
+ */
+export const registerPushTokenBodyTokenMin = 10;
+export const registerPushTokenBodyTokenMax = 300;
+
+
+
+export const RegisterPushTokenBody = zod.object({
+  "token": zod.string().min(registerPushTokenBodyTokenMin).max(registerPushTokenBodyTokenMax),
+  "platform": zod.enum(['ios', 'android', 'web'])
+})
+
+export const RegisterPushTokenResponse = zod.void()
 
 
 /**
@@ -709,7 +830,9 @@ export const GetPointsResponse = zod.object({
   "totalPoints": zod.number().int(),
   "assignedCompleted": zod.number().int(),
   "voluntaryCompleted": zod.number().int(),
-  "bonusPoints": zod.number().int()
+  "bonusPoints": zod.number().int(),
+  "inviteEmail": zod.string().email().nullable(),
+  "inviteStatus": zod.string().nullable()
 }))
 })
 

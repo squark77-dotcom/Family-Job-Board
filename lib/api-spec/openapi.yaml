@@ -186,6 +186,52 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /family/invitations:
+    post:
+      operationId: createFamilyInvitation
+      tags: [family]
+      summary: Invite a child or co-parent by email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FamilyInvitationInput"
+      responses:
+        "201":
+          description: Invitation sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyInvitation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /family/invitations/{invitationId}/accept:
+    parameters:
+      - $ref: "#/components/parameters/InvitationId"
+    post:
+      operationId: acceptFamilyInvitation
+      tags: [family]
+      summary: Accept an invitation for the signed-in account
+      responses:
+        "200":
+          description: Invitation accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /dashboard:
     get:
       operationId: getDashboard
@@ -411,6 +457,44 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /jobs/{jobId}/remind:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    post:
+      operationId: remindJob
+      tags: [jobs]
+      summary: Send an immediate push reminder to the assigned child
+      responses:
+        "200":
+          description: Reminder sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReminderResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /notifications/push-token:
+    post:
+      operationId: registerPushToken
+      tags: [family]
+      summary: Register the current mobile device for reminders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushTokenInput"
+      responses:
+        "204":
+          description: Push token registered
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /points:
     get:
       operationId: getPoints
@@ -468,6 +552,12 @@ components:
       required: true
       schema:
         type: string
+    InvitationId:
+      name: invitationId
+      in: path
+      required: true
+      schema:
+        type: string
   responses:
     BadRequest:
       description: Invalid request
@@ -483,6 +573,12 @@ components:
             $ref: "#/components/schemas/Error"
     Forbidden:
       description: User is not allowed to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Conflict:
+      description: Request conflicts with the current resource state
       content:
         application/json:
           schema:
@@ -542,7 +638,9 @@ components:
         assignedCompleted: { type: integer }
         voluntaryCompleted: { type: integer }
         bonusPoints: { type: integer }
-      required: [id, name, avatar, active, linked, totalPoints, assignedCompleted, voluntaryCompleted, bonusPoints]
+        inviteEmail: { type: ["string", "null"], format: email }
+        inviteStatus: { type: ["string", "null"] }
+      required: [id, name, avatar, active, linked, totalPoints, assignedCompleted, voluntaryCompleted, bonusPoints, inviteEmail, inviteStatus]
     Family:
       type: object
       properties:
@@ -586,7 +684,37 @@ components:
       properties:
         name: { type: string, minLength: 1, maxLength: 60 }
         avatar: { type: ["string", "null"], maxLength: 8 }
+        email: { type: ["string", "null"], format: email }
       required: [name]
+    FamilyInvitationInput:
+      type: object
+      properties:
+        email: { type: string, format: email, minLength: 3, maxLength: 320 }
+        kind: { type: string, enum: [child, parent] }
+        childId: { type: ["string", "null"] }
+      required: [email, kind]
+    FamilyInvitation:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        kind: { type: string, enum: [child, parent] }
+        childId: { type: ["string", "null"] }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+      required: [id, email, kind, childId, status, createdAt]
+    PushTokenInput:
+      type: object
+      properties:
+        token: { type: string, minLength: 10, maxLength: 300 }
+        platform: { type: string, enum: [ios, android, web] }
+      required: [token, platform]
+    ReminderResponse:
+      type: object
+      properties:
+        sent: { type: boolean }
+        childName: { type: string }
+      required: [sent, childName]
     ChildUpdate:
       type: object
       properties:
@@ -609,6 +737,7 @@ components:
         status: { $ref: "#/components/schemas/JobStatus" }
         dueDate: { type: ["string", "null"], format: date-time }
         estimatedMinutes: { type: ["integer", "null"], minimum: 1, maximum: 1440 }
+        isDaily: { type: boolean }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
         completedAt: { type: ["string", "null"], format: date-time }
@@ -616,7 +745,7 @@ components:
         occurrenceNumber: { type: integer, minimum: 1, maximum: 2 }
         occurrenceTotal: { type: integer, minimum: 1, maximum: 2 }
       required:
-        [id, familyId, title, description, points, type, assignedChildId, assignedChildName, claimedByChildId, claimedByChildName, status, dueDate, estimatedMinutes, createdAt, updatedAt, completedAt, repeatGroupId, occurrenceNumber, occurrenceTotal]
+        [id, familyId, title, description, points, type, assignedChildId, assignedChildName, claimedByChildId, claimedByChildName, status, dueDate, estimatedMinutes, isDaily, createdAt, updatedAt, completedAt, repeatGroupId, occurrenceNumber, occurrenceTotal]
     JobInput:
       type: object
       properties:
@@ -627,6 +756,7 @@ components:
         assignedChildId: { type: ["string", "null"] }
         dueDate: { type: ["string", "null"], format: date-time }
         estimatedMinutes: { type: ["integer", "null"], minimum: 1, maximum: 1440 }
+        isDaily: { type: boolean, default: false }
         dailyRuns:
           type: integer
           minimum: 1

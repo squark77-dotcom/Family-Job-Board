@@ -30,6 +30,31 @@ export const familiesTable = pgTable("families", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const familyInvitationsTable = pgTable(
+  "family_invitations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    familyId: uuid("family_id")
+      .notNull()
+      .references(() => familiesTable.id, { onDelete: "cascade" }),
+    childId: uuid("child_id").references(() => childrenTable.id, {
+      onDelete: "cascade",
+    }),
+    email: text("email").notNull(),
+    kind: text("kind").notNull(),
+    clerkInvitationId: text("clerk_invitation_id").unique(),
+    status: text("status").notNull().default("pending"),
+    invitedByUserId: uuid("invited_by_user_id").notNull(),
+    acceptedUserId: uuid("accepted_user_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("family_invitations_family_idx").on(table.familyId),
+    index("family_invitations_email_idx").on(table.email),
+  ],
+);
+
 export const childrenTable = pgTable(
   "children",
   {
@@ -63,6 +88,7 @@ export const jobsTable = pgTable(
     status: text("status").notNull().default("to_do"),
     dueDate: timestamp("due_date", { withTimezone: true }),
     estimatedMinutes: integer("estimated_minutes"),
+    isDaily: boolean("is_daily").notNull().default(false),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     repeatGroupId: uuid("repeat_group_id"),
     occurrenceNumber: integer("occurrence_number").notNull().default(1),
@@ -79,6 +105,53 @@ export const jobsTable = pgTable(
     uniqueIndex("jobs_repeat_claimant_unique").on(
       table.repeatGroupId,
       table.claimedByChildId,
+    ),
+  ],
+);
+
+export const expoPushTokensTable = pgTable(
+  "expo_push_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    childId: uuid("child_id").references(() => childrenTable.id, {
+      onDelete: "cascade",
+    }),
+    token: text("token").notNull().unique(),
+    platform: text("platform").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index("expo_push_tokens_user_idx").on(table.userId),
+    index("expo_push_tokens_child_idx").on(table.childId),
+  ],
+);
+
+export const sentJobRemindersTable = pgTable(
+  "sent_job_reminders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    jobId: uuid("job_id")
+      .notNull()
+      .references(() => jobsTable.id, { onDelete: "cascade" }),
+    childId: uuid("child_id")
+      .notNull()
+      .references(() => childrenTable.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    reminderDate: text("reminder_date").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("sent_job_reminders_unique").on(
+      table.jobId,
+      table.kind,
+      table.reminderDate,
     ),
   ],
 );
@@ -155,4 +228,7 @@ export type ChildRecord = typeof childrenTable.$inferSelect;
 export type JobRecord = typeof jobsTable.$inferSelect;
 export type SubmissionRecord = typeof submissionsTable.$inferSelect;
 export type PointTransactionRecord = typeof pointsTransactionsTable.$inferSelect;
+export type FamilyInvitationRecord = typeof familyInvitationsTable.$inferSelect;
+export type ExpoPushTokenRecord = typeof expoPushTokensTable.$inferSelect;
+export type SentJobReminderRecord = typeof sentJobRemindersTable.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;

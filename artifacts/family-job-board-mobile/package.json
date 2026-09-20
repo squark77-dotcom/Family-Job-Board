@@ -61,6 +61,7 @@
   "dependencies": {
     "expo-asset": "~57.0.17",
     "expo-audio": "~57.0.5",
-    "expo-build-properties": "~57.0.21"
+    "expo-build-properties": "~57.0.21",
+    "expo-notifications": "~0.32.17"
   }
 }

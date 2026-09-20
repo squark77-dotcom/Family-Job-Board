@@ -25,9 +25,12 @@ import type {
   Child,
   ChildInput,
   ChildUpdate,
+  ConflictResponse,
   Dashboard,
   Error,
   Family,
+  FamilyInvitation,
+  FamilyInvitationInput,
   FamilyJoinInput,
   FamilySetupInput,
   FamilyUpdateInput,
@@ -43,6 +46,8 @@ import type {
   NotFoundResponse,
   PointTransaction,
   PointsSummary,
+  PushTokenInput,
+  ReminderResponse,
   UnauthorizedResponse,
   UserProfile
 } from './api.schemas';
@@ -745,6 +750,168 @@ export const useUpdateChild = <TError = ErrorType<UnauthorizedResponse | Forbidd
         TContext
       > => {
       return useMutation(getUpdateChildMutationOptions(options));
+    }
+
+export const getCreateFamilyInvitationUrl = () => {
+
+
+
+
+  return `/api/family/invitations`
+}
+
+/**
+ * @summary Invite a child or co-parent by email
+ */
+export const createFamilyInvitation = async (familyInvitationInput: FamilyInvitationInput, options?: Parameters<typeof customFetch>[1]): Promise<FamilyInvitation> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<FamilyInvitation>(getCreateFamilyInvitationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(familyInvitationInput)
+  }
+);}
+
+
+
+
+
+export const getCreateFamilyInvitationMutationKey = () => ['createFamilyInvitation'] as const;
+
+export const getCreateFamilyInvitationMutationOptions = <TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | ConflictResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFamilyInvitation>>, TError,CreateFamilyInvitationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createFamilyInvitation>>, TError,CreateFamilyInvitationMutationVariables, TContext> => {
+
+const mutationKey = getCreateFamilyInvitationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createFamilyInvitation>>, CreateFamilyInvitationMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createFamilyInvitation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateFamilyInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof createFamilyInvitation>>>
+    export type CreateFamilyInvitationMutationBody = BodyType<FamilyInvitationInput>
+    export type CreateFamilyInvitationMutationError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | ConflictResponse>
+    export type CreateFamilyInvitationMutationVariables = {data: BodyType<FamilyInvitationInput>}
+
+    /**
+ * @summary Invite a child or co-parent by email
+ */
+export const useCreateFamilyInvitation = <TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | ConflictResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFamilyInvitation>>, TError,CreateFamilyInvitationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createFamilyInvitation>>,
+        TError,
+        CreateFamilyInvitationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateFamilyInvitationMutationOptions(options));
+    }
+
+export const getAcceptFamilyInvitationUrl = (invitationId: string,) => {
+
+
+
+
+  return `/api/family/invitations/${invitationId}/accept`
+}
+
+/**
+ * @summary Accept an invitation for the signed-in account
+ */
+export const acceptFamilyInvitation = async (invitationId: string, options?: Parameters<typeof customFetch>[1]): Promise<UserProfile> => {
+
+  return customFetch<UserProfile>(getAcceptFamilyInvitationUrl(invitationId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAcceptFamilyInvitationMutationKey = () => ['acceptFamilyInvitation'] as const;
+
+export const getAcceptFamilyInvitationMutationOptions = <TError = ErrorType<UnauthorizedResponse | NotFoundResponse | ConflictResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptFamilyInvitation>>, TError,AcceptFamilyInvitationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptFamilyInvitation>>, TError,AcceptFamilyInvitationMutationVariables, TContext> => {
+
+const mutationKey = getAcceptFamilyInvitationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptFamilyInvitation>>, AcceptFamilyInvitationMutationVariables> = (props) => {
+          const {invitationId} = props ?? {};
+
+          return  acceptFamilyInvitation(invitationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptFamilyInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof acceptFamilyInvitation>>>
+
+    export type AcceptFamilyInvitationMutationError = ErrorType<UnauthorizedResponse | NotFoundResponse | ConflictResponse>
+    export type AcceptFamilyInvitationMutationVariables = {invitationId: string}
+
+    /**
+ * @summary Accept an invitation for the signed-in account
+ */
+export const useAcceptFamilyInvitation = <TError = ErrorType<UnauthorizedResponse | NotFoundResponse | ConflictResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptFamilyInvitation>>, TError,AcceptFamilyInvitationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof acceptFamilyInvitation>>,
+        TError,
+        AcceptFamilyInvitationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAcceptFamilyInvitationMutationOptions(options));
     }
 
 export const getGetDashboardUrl = () => {
@@ -1619,6 +1786,168 @@ export const useReviewJob = <TError = ErrorType<BadRequestResponse | Unauthorize
         TContext
       > => {
       return useMutation(getReviewJobMutationOptions(options));
+    }
+
+export const getRemindJobUrl = (jobId: string,) => {
+
+
+
+
+  return `/api/jobs/${jobId}/remind`
+}
+
+/**
+ * @summary Send an immediate push reminder to the assigned child
+ */
+export const remindJob = async (jobId: string, options?: Parameters<typeof customFetch>[1]): Promise<ReminderResponse> => {
+
+  return customFetch<ReminderResponse>(getRemindJobUrl(jobId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemindJobMutationKey = () => ['remindJob'] as const;
+
+export const getRemindJobMutationOptions = <TError = ErrorType<UnauthorizedResponse | ForbiddenResponse | ConflictResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof remindJob>>, TError,RemindJobMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof remindJob>>, TError,RemindJobMutationVariables, TContext> => {
+
+const mutationKey = getRemindJobMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof remindJob>>, RemindJobMutationVariables> = (props) => {
+          const {jobId} = props ?? {};
+
+          return  remindJob(jobId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemindJobMutationResult = NonNullable<Awaited<ReturnType<typeof remindJob>>>
+
+    export type RemindJobMutationError = ErrorType<UnauthorizedResponse | ForbiddenResponse | ConflictResponse>
+    export type RemindJobMutationVariables = {jobId: string}
+
+    /**
+ * @summary Send an immediate push reminder to the assigned child
+ */
+export const useRemindJob = <TError = ErrorType<UnauthorizedResponse | ForbiddenResponse | ConflictResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof remindJob>>, TError,RemindJobMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof remindJob>>,
+        TError,
+        RemindJobMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRemindJobMutationOptions(options));
+    }
+
+export const getRegisterPushTokenUrl = () => {
+
+
+
+
+  return `/api/notifications/push-token`
+}
+
+/**
+ * @summary Register the current mobile device for reminders
+ */
+export const registerPushToken = async (pushTokenInput: PushTokenInput, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<void>(getRegisterPushTokenUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(pushTokenInput)
+  }
+);}
+
+
+
+
+
+export const getRegisterPushTokenMutationKey = () => ['registerPushToken'] as const;
+
+export const getRegisterPushTokenMutationOptions = <TError = ErrorType<BadRequestResponse | UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerPushToken>>, TError,RegisterPushTokenMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof registerPushToken>>, TError,RegisterPushTokenMutationVariables, TContext> => {
+
+const mutationKey = getRegisterPushTokenMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerPushToken>>, RegisterPushTokenMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  registerPushToken(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterPushTokenMutationResult = NonNullable<Awaited<ReturnType<typeof registerPushToken>>>
+    export type RegisterPushTokenMutationBody = BodyType<PushTokenInput>
+    export type RegisterPushTokenMutationError = ErrorType<BadRequestResponse | UnauthorizedResponse>
+    export type RegisterPushTokenMutationVariables = {data: BodyType<PushTokenInput>}
+
+    /**
+ * @summary Register the current mobile device for reminders
+ */
+export const useRegisterPushToken = <TError = ErrorType<BadRequestResponse | UnauthorizedResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerPushToken>>, TError,RegisterPushTokenMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof registerPushToken>>,
+        TError,
+        RegisterPushTokenMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRegisterPushTokenMutationOptions(options));
     }
 
 export const getGetPointsUrl = (params?: GetPointsParams,) => {

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { playClaimSound } from "@/lib/sound-effects";
 
 function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
@@ -26,6 +27,7 @@ function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
   const [assignedChildId, setAssignedChildId] = useState<string>("none");
   const [estimatedMinutes, setEstimatedMinutes] = useState("");
   const [dailyRuns, setDailyRuns] = useState<"1" | "2">("1");
+  const [isDaily, setIsDaily] = useState(false);
 
   const handleSubmit = () => {
     if (!title) {
@@ -41,6 +43,7 @@ function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
         type,
         assignedChildId: type === "assigned" && assignedChildId !== "none" ? assignedChildId : undefined,
         estimatedMinutes: estimatedMinutes ? parseInt(estimatedMinutes, 10) : undefined,
+        isDaily,
         dailyRuns: parseInt(dailyRuns, 10),
       }
     }, {
@@ -62,6 +65,7 @@ function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
         setAssignedChildId("none");
         setEstimatedMinutes("");
         setDailyRuns("1");
+        setIsDaily(false);
       }
     });
   };
@@ -78,6 +82,15 @@ function CreateJobDialog({ childrenList }: { childrenList: any[] }) {
           <DialogTitle className="font-display text-2xl font-bold tracking-tight">Create a Job</DialogTitle>
         </DialogHeader>
         <div className="space-y-5">
+          <div className="space-y-2">
+            <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 p-3 cursor-pointer">
+              <Checkbox checked={isDaily} onCheckedChange={(checked) => setIsDaily(checked === true)} />
+              <span>
+                <span className="block text-sm font-semibold">Daily job</span>
+                <span className="block text-xs text-muted-foreground">Keep this job on the daily list and remind the child each day.</span>
+              </span>
+            </label>
+          </div>
           <div className="space-y-2">
             <Label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Title</Label>
             <Input className="h-11 rounded-xl bg-muted/50 border-border" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Wash the car" />

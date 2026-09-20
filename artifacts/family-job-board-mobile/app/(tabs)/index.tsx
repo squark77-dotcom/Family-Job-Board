@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, ScrollView, RefreshControl } from 'react-native';
 import { useColors } from '@/hooks/useColors';
 import { Header } from '@/components/Header';
-import { useGetDashboard, useGetCurrentUser, useStartJob, useCompleteJob } from '@workspace/api-client-react';
+import { useGetDashboard, useGetCurrentUser, useStartJob, useCompleteJob, useRemindJob } from '@workspace/api-client-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
@@ -19,9 +19,11 @@ export default function TodayScreen() {
   const queryClient = useQueryClient();
   const startJob = useStartJob();
   const completeJob = useCompleteJob();
+  const remindJob = useRemindJob();
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
   const isChild = userProfile?.user.role === 'child';
+  const isParent = userProfile?.user.role === 'parent';
 
   const handleStart = (jobId: string) => {
     startJob.mutate({ jobId }, {
@@ -42,6 +44,15 @@ export default function TodayScreen() {
         queryClient.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListJobsQueryKey() });
       }
+    });
+  };
+
+  const handleRemind = (jobId: string) => {
+    remindJob.mutate({ jobId }, {
+      onSuccess: () => {
+        setSuccessMessage('Reminder sent.');
+        setTimeout(() => setSuccessMessage(null), 2600);
+      },
     });
   };
 
@@ -137,6 +148,18 @@ export default function TodayScreen() {
                     )}
                   </View>
                 )}
+                {isParent &&
+                  ['to_do', 'claimed', 'in_progress', 'changes_requested'].includes(job.status) &&
+                  Boolean(job.assignedChildId || job.claimedByChildId) && (
+                    <Button
+                      label="Remind"
+                      size="sm"
+                      variant="outline"
+                      onPress={() => handleRemind(job.id)}
+                      loading={remindJob.isPending}
+                      icon={<Feather name="bell" size={15} color={colors.foreground} />}
+                    />
+                  )}
               </View>
             </Card>
           );

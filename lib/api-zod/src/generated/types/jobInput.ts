@@ -34,6 +34,7 @@ export interface JobInput {
      * @nullable
      */
   estimatedMinutes?: number | null;
+  isDaily?: boolean;
   /**
      * Number of independently claimable instances to create for the day
      * @minimum 1

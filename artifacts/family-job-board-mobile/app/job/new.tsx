@@ -27,6 +27,7 @@ export default function NewJobScreen() {
   const [isAssigned, setIsAssigned] = useState(false);
   const [assignedChildId, setAssignedChildId] = useState<string | null>(null);
   const [dailyRuns, setDailyRuns] = useState<1 | 2>(1);
+  const [isDaily, setIsDaily] = useState(false);
 
   React.useEffect(() => {
     if (!isProfileLoading && profile && !isParent) router.replace('/');
@@ -40,6 +41,7 @@ export default function NewJobScreen() {
         points: parseInt(points, 10) || 10,
         type: isAssigned && assignedChildId ? 'assigned' : 'board',
         assignedChildId: isAssigned ? assignedChildId : null,
+        isDaily,
         dailyRuns: isAssigned ? 1 : dailyRuns,
       }
     }, {
@@ -101,6 +103,20 @@ export default function NewJobScreen() {
           <Switch 
             value={isAssigned}
             onValueChange={setIsAssigned}
+            trackColor={{ true: colors.primary, false: colors.border }}
+          />
+        </View>
+
+        <View style={styles.switchContainer}>
+          <View style={{ flex: 1, paddingRight: 16 }}>
+            <Text style={[styles.switchLabel, { color: colors.foreground }]}>Daily job</Text>
+            <Text style={[styles.runsHelp, { color: colors.mutedForeground }]}>
+              Keep this chore on the daily list and send overdue reminders.
+            </Text>
+          </View>
+          <Switch
+            value={isDaily}
+            onValueChange={setIsDaily}
             trackColor={{ true: colors.primary, false: colors.border }}
           />
         </View>
