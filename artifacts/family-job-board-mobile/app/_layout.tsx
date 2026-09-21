@@ -42,10 +42,19 @@ const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync().then(
+  () => console.info('[startup] Native splash auto-hide prevention enabled'),
+  (error) =>
+    console.error(
+      '[startup] Failed to prevent native splash auto-hide',
+      formatError(error),
+    ),
+);
 
 const queryClient = new QueryClient();
 const STARTUP_DIAGNOSTIC_DELAY_MS = 8_000;
+const FONT_LOAD_TIMEOUT_MS = 5_000;
+const SPLASH_HIDE_TIMEOUT_MS = 5_000;
 
 type StartupErrorInfo = {
   message: string;
@@ -65,6 +74,35 @@ function formatError(error: unknown): string {
 function getPublishableKeyPrefix(): string {
   if (!publishableKey) return 'undefined';
   return `${publishableKey.slice(0, 15)}…`;
+}
+
+function hideNativeSplash(reason: string): void {
+  console.info(`[startup] Hiding native splash (${reason})`);
+
+  let settled = false;
+  const watchdog = setTimeout(() => {
+    if (!settled) {
+      console.error(
+        `[startup] SplashScreen.hideAsync() did not settle within ${SPLASH_HIDE_TIMEOUT_MS}ms`,
+      );
+    }
+  }, SPLASH_HIDE_TIMEOUT_MS);
+
+  void SplashScreen.hideAsync().then(
+    () => {
+      settled = true;
+      clearTimeout(watchdog);
+      console.info('[startup] Native splash hidden');
+    },
+    (error) => {
+      settled = true;
+      clearTimeout(watchdog);
+      console.error(
+        '[startup] SplashScreen.hideAsync() failed',
+        formatError(error),
+      );
+    },
+  );
 }
 
 function StartupErrorFallback({ error, resetError }: ErrorFallbackProps) {
@@ -321,6 +359,8 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  const [fontLoadTimedOut, setFontLoadTimedOut] = React.useState(false);
+  const splashHideStarted = React.useRef(false);
   const [startupError, setStartupError] =
     React.useState<StartupErrorInfo | null>(null);
   const recordStartupError = React.useCallback(
@@ -336,12 +376,35 @@ export default function RootLayout() {
   }, [recordStartupError]);
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+    if (fontsLoaded || fontError || fontLoadTimedOut) {
+      return;
     }
-  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
+    const timeoutId = setTimeout(() => {
+      console.warn(
+        `[startup] Inter font loading exceeded ${FONT_LOAD_TIMEOUT_MS}ms; continuing with system font fallback`,
+      );
+      setFontLoadTimedOut(true);
+    }, FONT_LOAD_TIMEOUT_MS);
+
+    return () => clearTimeout(timeoutId);
+  }, [fontLoadTimedOut, fontError, fontsLoaded]);
+
+  const canRenderWithoutFonts = fontsLoaded || Boolean(fontError) || fontLoadTimedOut;
+
+  useEffect(() => {
+    if (!canRenderWithoutFonts || splashHideStarted.current) return;
+
+    splashHideStarted.current = true;
+    const reason = fontsLoaded
+      ? 'Inter fonts loaded'
+      : fontError
+        ? 'Inter font loading failed'
+        : 'Inter font loading timed out; using system fallback';
+    hideNativeSplash(reason);
+  }, [canRenderWithoutFonts, fontError, fontsLoaded]);
+
+  if (!canRenderWithoutFonts) return null;
 
   return (
     <SafeAreaProvider>
