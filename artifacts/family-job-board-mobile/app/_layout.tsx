@@ -19,13 +19,9 @@ import { tokenCache } from '@/lib/tokenCache';
 import {
   setBaseUrl,
   setAuthTokenGetter,
-  useGetCurrentUser,
-  getGetCurrentUserQueryKey,
-  useRegisterPushToken,
 } from '@workspace/api-client-react';
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -33,7 +29,6 @@ import {
   View,
 } from 'react-native';
 import { useColors } from '@/hooks/useColors';
-import { registerForPushNotificationsAsync } from '@/lib/pushNotifications';
 
 const domain = process.env.EXPO_PUBLIC_DOMAIN;
 if (domain) setBaseUrl(`https://${domain}`);
@@ -205,50 +200,6 @@ function ClerkQueryClientCacheInvalidator() {
     }
     prevUserIdRef.current = userId;
   }, [userId, qc]);
-
-  return null;
-}
-
-function PushNotificationRegistration() {
-  const { isLoaded, isSignedIn } = useAuth();
-  const { data: profile } = useGetCurrentUser({
-    query: {
-      enabled: isLoaded && Boolean(isSignedIn),
-      queryKey: getGetCurrentUserQueryKey(),
-    },
-  });
-  const registerToken = useRegisterPushToken();
-
-  useEffect(() => {
-    if (
-      !isLoaded ||
-      !isSignedIn ||
-      profile?.user.role !== "child" ||
-      registerToken.isPending
-    ) {
-      return;
-    }
-    let cancelled = false;
-    const registrationTimer = setTimeout(() => {
-      void registerForPushNotificationsAsync()
-        .then((token) => {
-          if (!cancelled && token) {
-            registerToken.mutate({
-              data: {
-                token,
-                platform: Platform.OS === "ios" ? "ios" : "android",
-              },
-            });
-          }
-        })
-        .catch(() => undefined);
-    }, 750);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(registrationTimer);
-    };
-  }, [isLoaded, isSignedIn, profile?.user.role]);
 
   return null;
 }
@@ -425,7 +376,6 @@ export default function RootLayout() {
               <GestureHandlerRootView style={{ flex: 1 }}>
                 <KeyboardProvider>
                   <RootLayoutNav />
-                  <PushNotificationRegistration />
                 </KeyboardProvider>
               </GestureHandlerRootView>
             </QueryClientProvider>

@@ -19,7 +19,6 @@
       "expo-router",
       "expo-audio",
       "expo-asset",
-      "expo-notifications",
       [
         "expo-build-properties",
         {
