@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, RefreshControl } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, RefreshControl, Alert } from 'react-native';
 import { useColors } from '@/hooks/useColors';
 import { Header } from '@/components/Header';
-import { useListJobs, useClaimJob, useGetCurrentUser, useStartJob } from '@workspace/api-client-react';
+import { useListJobs, useClaimJob, useGetCurrentUser, useStartJob, useDeleteJob } from '@workspace/api-client-react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
@@ -20,6 +20,7 @@ export default function BoardScreen() {
   const queryClient = useQueryClient();
   const claimJob = useClaimJob();
   const startJob = useStartJob();
+  const deleteJob = useDeleteJob();
   const router = useRouter();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -48,6 +49,22 @@ export default function BoardScreen() {
         queryClient.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
       }
     });
+  };
+
+  const handleDelete = (jobId: string) => {
+    Alert.alert("Delete job?", "This removes the job for everyone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => deleteJob.mutate({ jobId }, {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getListJobsQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
+          },
+        }),
+      },
+    ]);
   };
 
   const availableJobs = jobs?.filter(j => j.status === 'to_do') || [];
@@ -109,6 +126,9 @@ export default function BoardScreen() {
                    variant="accent"
               />
               
+              {isParent && (
+                <Button label="Delete" size="sm" onPress={() => handleDelete(job.id)} loading={deleteJob.isPending} />
+              )}
               {isChild && job.type === 'board' && (
                 <Button 
                   label="Claim Job" 
