@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Platform, StyleSheet, useColorScheme, View, ActivityIndicator } from 'react-native';
+import { Platform, StyleSheet, useColorScheme, View, ActivityIndicator, Text, Pressable } from 'react-native';
 import { useColors } from '@/hooks/useColors';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -146,7 +146,7 @@ function ClassicTabLayout({ isParent }: { isParent: boolean }) {
 }
 
 export default function TabLayout() {
-  const { data: userProfile, isLoading } = useGetCurrentUser();
+  const { data: userProfile, isLoading, isError, error, refetch } = useGetCurrentUser();
   const router = useRouter();
   const colors = useColors();
 
@@ -155,6 +155,19 @@ export default function TabLayout() {
       router.replace('/setup');
     }
   }, [isLoading, userProfile, router]);
+
+  if (isError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background, alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <Text style={{ color: (colors as any).foreground ?? (colors as any).text, fontSize: 16, textAlign: "center", marginBottom: 16 }}>
+          {String((error as any)?.message ?? "Could not load your profile.")}
+        </Text>
+        <Pressable onPress={() => refetch()} style={{ backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}>
+          <Text style={{ color: "#fff", fontWeight: "600" }}>Retry</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   if (isLoading || !userProfile || !userProfile.family) {
     return (
